@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RecruitSim - Result Announcement</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "accent": "#FBBF24",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .confetti-gradient {
+            background-image: radial-gradient(circle at 20% 30%, #FBBF24 1px, transparent 1px),
+                              radial-gradient(circle at 70% 10%, #2463eb 1px, transparent 1px),
+                              radial-gradient(circle at 40% 80%, #FBBF24 1px, transparent 1px),
+                              radial-gradient(circle at 90% 60%, #2463eb 1px, transparent 1px);
+            background-size: 100px 100px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex flex-col w-full max-w-[1280px] mx-auto overflow-x-hidden">
+<!-- Header / Navigation -->
+<header class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg text-white">
+<span class="material-symbols-outlined text-2xl">leaderboard</span>
+</div>
+<h2 class="text-xl font-black tracking-tight text-primary uppercase">RecruitSim</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex flex-col items-end">
+<span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Next Round Starts In</span>
+<span class="text-lg font-black text-accent tabular-nums">14:59:02</span>
+</div>
+<div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-primary">
+<img alt="Student profile avatar" data-alt="Close up portrait of a student avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr_vcCfILE0SVl2gLRD15kUatIKl4EPpIJ7Yq0ZDu_7YhOnVaTBgDo60WIqzBb-3Z0zM8kAIcyDAmtKKNT8usg55RgQRv5kmwarkBEiP0f1HzmsivRCPgSF22-6hLeweK-HgciCPINXsBBnk-37hN-ZKB6bPj3DJp8YRANPWXxVS2TJkE5N-w-TsUy5FGhAQAVpTS7E7QDJxSnjkPo0iOcFVuM_SuGF5quzbGvPcAdjx-FEInsywFwQnON4OaMUJkyKxdZTD14UXk"/>
+</div>
+</div>
+</header>
+<main class="p-6 space-y-8">
+<!-- Hero Announcement Section -->
+<section class="relative overflow-hidden rounded-xl bg-primary p-8 md:p-12 text-center text-white shadow-2xl shadow-primary/20 confetti-gradient">
+<div class="relative z-10 flex flex-col items-center">
+<div class="mb-4 inline-flex items-center justify-center bg-accent text-slate-900 rounded-full px-4 py-1 text-sm font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm mr-2 leading-none">stars</span>
+                        Round 1 Concluded
+                    </div>
+<h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tighter">Result Announcement</h1>
+<p class="text-primary-100 text-lg md:text-xl max-w-2xl opacity-90">
+                        The numbers are in! Out of 500 competing teams, these top performers have shown exceptional talent acquisition strategies.
+                    </p>
+</div>
+<div class="absolute top-0 right-0 p-4 opacity-20 transform rotate-12">
+<span class="material-symbols-outlined text-9xl">celebration</span>
+</div>
+<div class="absolute bottom-0 left-0 p-4 opacity-20 transform -rotate-12">
+<span class="material-symbols-outlined text-9xl">workspace_premium</span>
+</div>
+</section>
+<!-- Winners Podium -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-2xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-accent text-3xl">emoji_events</span>
+                        Teams Advancing to Round 2
+                    </h2>
+<button class="text-primary font-bold text-sm hover:underline">View Global Leaderboard</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end pb-4">
+<!-- 2nd Place -->
+<div class="order-2 md:order-1 flex flex-col items-center gap-4 bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 h-[280px] relative transition-transform hover:-translate-y-2">
+<div class="absolute -top-4 bg-slate-400 text-white font-black px-4 py-1 rounded-full shadow-lg">#2</div>
+<div class="size-20 rounded-full border-4 border-slate-300 overflow-hidden">
+<img alt="Team Beta Logo" data-alt="Modern geometric team logo for Team Beta" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIGoClsRwAXftkC2Y_lAfz5ZagVrK-z1m06YrZeBwx8nz-iXHCkLORrNX9FgplFlnSInZ3wvExd4kqMyMvmgaWbG43apFXiwey-zEtLPtCLwN0RmoN3fdPVdxSvzCpZGplxqPbLZH9mGxBt_Jg2y3-_CNrCf2IeC5xFyeu9Ad7ZXy75A6k1jbxB6aPLk4o9LCvYIpDiAnusb5MnzmwEcII6XdaSGMCJZfpO8zqnyRucT919lJBA_ee9fAh1jjXSSKaeMNZodREB4c"/>
+</div>
+<div class="text-center">
+<h3 class="text-xl font-black">Team Beta</h3>
+<p class="text-slate-500 font-medium">9,420 Points</p>
+</div>
+<div class="mt-auto w-full">
+<div class="bg-slate-100 dark:bg-slate-900/50 py-2 rounded-lg text-center font-bold text-slate-600 dark:text-slate-400">QUALIFIED</div>
+</div>
+</div>
+<!-- 1st Place -->
+<div class="order-1 md:order-2 flex flex-col items-center gap-4 bg-white dark:bg-slate-800 p-8 rounded-xl border-4 border-accent h-[340px] relative transition-transform hover:-translate-y-2 shadow-xl shadow-accent/10">
+<div class="absolute -top-6 bg-accent text-slate-900 font-black px-6 py-2 rounded-full shadow-xl flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">emoji_events</span>
+                            CHAMPIONS
+                        </div>
+<div class="size-28 rounded-full border-4 border-accent overflow-hidden ring-4 ring-accent/20">
+<img alt="Team Alpha Logo" data-alt="Professional corporate team logo for Team Alpha" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIGuN1WRNHNzmcHSheb8ZYp4swZMtSmgHhTaO0euBW_WEEBaNwbdwaSP5LfE6MqlXpUiXG5FiFVNMwbktIYAfPikVGHh--T-3vvrSEEEEPo3txISRfUTVMiYoynKIQLWTywXvAxRqJz2GzPPt9Rg6vs0-D25cX3mQjkVr4oMAIu7tTpermi0ecRVbxblftiZO9KQkQqIK8RsM5JIulH12BqgNotAdGH_nEh07y6Ok0VUQi5Op4kPs691kSyY806XrXAOTtOpRS_bk"/>
+</div>
+<div class="text-center">
+<h3 class="text-2xl font-black text-primary">Team Alpha</h3>
+<p class="text-slate-500 font-bold">10,850 Points</p>
+</div>
+<div class="mt-auto w-full">
+<div class="bg-accent/20 dark:bg-accent/10 py-3 rounded-lg text-center font-black text-slate-800 dark:text-accent">NEXT ROUND ADVANCED</div>
+</div>
+</div>
+<!-- 3rd Place -->
+<div class="order-3 md:order-3 flex flex-col items-center gap-4 bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 h-[260px] relative transition-transform hover:-translate-y-2">
+<div class="absolute -top-4 bg-orange-400 text-white font-black px-4 py-1 rounded-full shadow-lg">#3</div>
+<div class="size-20 rounded-full border-4 border-orange-200 overflow-hidden">
+<img alt="Team Gamma Logo" data-alt="Tech startup style team logo for Team Gamma" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUGaZa5D2vWCRASzu8HYuXoqddDwMkNkeS7HDtcj6UY7wUDA7UgCPo12DMq7YS61jQOWm0KzdquFFTA1w7pJ7sreHLk8-TRPpjGU7tewReXXZRY-9Fgxljst5vk3XKQR4v82_67oA2WVVb-mfEOMe3vpCiVKQJlgrLUYjaiBeuRw5fjrQ0VIiPae07AxE0jtm7YodEP56y8hH8CjbXsCFFdTR6or1O0wHx3-m4xDsv8zp00PWCs76iy7fcnTcHiK2VagXx94wcXfA"/>
+</div>
+<div class="text-center">
+<h3 class="text-xl font-black">Team Gamma</h3>
+<p class="text-slate-500 font-medium">8,900 Points</p>
+</div>
+<div class="mt-auto w-full">
+<div class="bg-slate-100 dark:bg-slate-900/50 py-2 rounded-lg text-center font-bold text-slate-600 dark:text-slate-400">QUALIFIED</div>
+</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Advanced Rankings Table -->
+<div class="lg:col-span-2 space-y-4">
+<h3 class="text-xl font-bold px-2">Other Advancing Teams</h3>
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+<tr>
+<th class="px-6 py-4 text-xs font-black text-slate-500 uppercase">Rank</th>
+<th class="px-6 py-4 text-xs font-black text-slate-500 uppercase">Team</th>
+<th class="px-6 py-4 text-xs font-black text-slate-500 uppercase">Total Score</th>
+<th class="px-6 py-4 text-xs font-black text-slate-500 uppercase">Trend</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4 font-bold">4</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-black text-xs text-primary">DF</div>
+<span class="font-bold">Delta Force</span>
+</div>
+</td>
+<td class="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">8,120</td>
+<td class="px-6 py-4">
+<span class="material-symbols-outlined text-green-500">trending_up</span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4 font-bold">5</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-black text-xs text-primary">ER</div>
+<span class="font-bold">Elite Recruiters</span>
+</div>
+</td>
+<td class="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">7,950</td>
+<td class="px-6 py-4">
+<span class="material-symbols-outlined text-slate-400">horizontal_rule</span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4 font-bold">6</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-black text-xs text-primary">TS</div>
+<span class="font-bold">Talent Scouts</span>
+</div>
+</td>
+<td class="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">7,640</td>
+<td class="px-6 py-4">
+<span class="material-symbols-outlined text-red-500">trending_down</span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4 font-bold">7</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-black text-xs text-primary">SH</div>
+<span class="font-bold">Swift Hires</span>
+</div>
+</td>
+<td class="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">7,210</td>
+<td class="px-6 py-4">
+<span class="material-symbols-outlined text-green-500">trending_up</span>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="p-4 bg-slate-50 dark:bg-slate-900/50 text-center">
+<button class="text-sm font-bold text-primary flex items-center gap-1 mx-auto">
+                                View all 124 qualifying teams
+                                <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Callouts Sidebar -->
+<div class="space-y-6">
+<!-- Individual Top Performers -->
+<div class="bg-primary/5 dark:bg-primary/10 rounded-xl border-2 border-primary/20 p-6">
+<h3 class="text-lg font-black mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">military_tech</span>
+                            Individual MVP Spotlight
+                        </h3>
+<div class="space-y-4">
+<div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="size-12 rounded-full overflow-hidden shrink-0 ring-2 ring-primary/20">
+<img alt="Top Performer" data-alt="Close up of smiling male student performer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8I227GIvreDbQ_NIKhQ9G-57O3Jo3DmOmP6S96slILrJzWbeI5toFe563CK9MrZIbe5QVQW1w1-vnvUbSDJ6wvssY5IfOFR2z3L_cG3Cl3JxHUSnTsSiHAB2PpBy35NNBgT1sk6l-Zdy1xSyw5F348LAL6USuzHm2FqYOKaXfoDTV9BDdRsc0AcL6St65q1GlkYpHYdF2fE3dS2vCtLkOG5F-2Wt07BYHAbKggYvbErMZ9Zg3bPwm9Ooq5NVKthqNxneKTd7J_Os"/>
+</div>
+<div>
+<p class="font-bold text-sm">Alex Johnson</p>
+<p class="text-xs text-slate-500">Efficiency Ace (99% Match Rate)</p>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="size-12 rounded-full overflow-hidden shrink-0 ring-2 ring-accent/20">
+<img alt="Top Performer" data-alt="Close up of smiling female student performer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWSOUn9oBfZkUNL3GyuP-ibkNV8ixBkKp33c1rHTlnfSppuRXoZmOpeEhy7V6Fb8NMatbGIHFEHV3G3jEJZ8g9nE3UC-o9lPfBCgkP-1dmORrf8dW73eIlvc_yz-2MP41kvzO8_cld2qsYuvBqCKdS6DPI886z7vwPOIhOtNhPqaJiwm45qhQ8MzOev9B9lNfTIJXSigeXWt-lr0rMKUCOToQA6KyPCVWGX--rhxTTRSfktujiKcfCDXu9ni7fIEPzGHc8Ufnkw1g"/>
+</div>
+<div>
+<p class="font-bold text-sm">Sarah Chen</p>
+<p class="text-xs text-slate-500">Volume Specialist (45 Hires/Day)</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-4 bg-primary text-white py-3 rounded-lg font-bold shadow-lg shadow-primary/25 active:scale-95 transition-transform">
+                            View All Awards
+                        </button>
+</div>
+<!-- Countdown Timer Card -->
+<div class="bg-accent rounded-xl p-6 text-slate-900 shadow-xl shadow-accent/20">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined font-black">timer</span>
+<span class="font-black uppercase tracking-widest text-sm">Next Round Starts In</span>
+</div>
+<div class="grid grid-cols-3 gap-2 text-center">
+<div class="bg-white/40 p-3 rounded-lg backdrop-blur-sm">
+<div class="text-2xl font-black">14</div>
+<div class="text-[10px] font-bold uppercase">Mins</div>
+</div>
+<div class="bg-white/40 p-3 rounded-lg backdrop-blur-sm">
+<div class="text-2xl font-black">59</div>
+<div class="text-[10px] font-bold uppercase">Secs</div>
+</div>
+<div class="bg-white/40 p-3 rounded-lg backdrop-blur-sm">
+<div class="text-2xl font-black">02</div>
+<div class="text-[10px] font-bold uppercase">Ms</div>
+</div>
+</div>
+<p class="mt-4 text-xs font-bold text-slate-800 leading-relaxed opacity-80">
+                            The simulation will resume automatically. Review your strategy during this brief intermission.
+                        </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom Action Bar (Mobile only or persistent) -->
+<div class="fixed bottom-6 right-6 z-40">
+<button class="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 font-black group transition-all hover:pr-8 hover:bg-primary">
+<span class="material-symbols-outlined">share</span>
+                Share My Result
+            </button>
+</div>
+<footer class="p-8 mt-8 border-t border-slate-200 dark:border-slate-800 text-center">
+<p class="text-sm text-slate-400 font-medium">© 2024 RecruitSim Simulator Platform • Global Leadership Board</p>
+</footer>
+</div>
+</body></html>

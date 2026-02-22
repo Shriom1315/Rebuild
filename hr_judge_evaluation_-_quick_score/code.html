@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RecruitSim | HR Evaluation Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
+        input[type="range"]::-webkit-slider-runnable-track { background: #e2e8f0; height: 0.5rem; border-radius: 999px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -6px; background-color: #2463eb; height: 1.25rem; width: 1.25rem; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<div class="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-tight">RecruitSim</h1>
+<p class="text-xs text-slate-500 font-medium uppercase tracking-wider">HR Panel</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">dashboard</span>
+<span class="font-medium text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px] fill-1">group</span>
+<span class="font-medium text-sm">Assigned Teams</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">history</span>
+<span class="font-medium text-sm">Evaluation History</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+<span class="font-medium text-sm">Settings</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2">
+<div class="size-10 rounded-full bg-slate-200 overflow-hidden" data-alt="User profile avatar of HR member" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBExCjEnIZ0kiOjRxeSqsNuSIxI8nXxkzibgIdIkj1dbHA9PjxB8JKXCnOGy7uAbUy_ulaDuuZGScFi81xLafVJ0sIvIiUT9OvsgWm-W_yiG4JpWVmJsbvF9J__WlYxNQzchk8G6F9-JEq5xaDekBeJw5Xthy3WkYRTjpbHe92BwEkycgUSuWZFBGVZ6t7lfMyFswTwyaKjKeylVcwF9kHmFmd6IF2WbEVvLXl56xFjAgKZDCxpiYVh0fEif9UrjooyPtQCiUkOTPk'); background-size: cover;"></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate">Dr. Sarah Jenkins</p>
+<p class="text-xs text-slate-500 truncate">Senior HR Evaluator</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-lg">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Left Panel: Team Summary & Live Stats -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-8">
+<header class="flex flex-wrap items-center justify-between gap-4 mb-8">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h2 class="text-3xl font-extrabold tracking-tight">Team: Cyber Knights</h2>
+<span class="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold rounded-full uppercase tracking-widest flex items-center gap-1">
+<span class="size-2 bg-green-500 rounded-full animate-pulse"></span> Live
+                            </span>
+</div>
+<p class="text-slate-500 font-medium">Evaluation ID: #CK-2024-089 • Round 3 (GD &amp; Interview)</p>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex -space-x-3 overflow-hidden px-2">
+<img alt="" class="inline-block h-10 w-10 rounded-full ring-2 ring-white dark:ring-slate-900" data-alt="Candidate avatar profile image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2lRcJCkpuiZBq3j-Y8xjhG8DlM4aoTKwE_l9sO5QnDAZp9WO35c5VLlaMq2I_cBhBQjDauZPve4fZ-IBjq1HTVvYto4lBMLVShcLwznps68xEyaKqqpgmxlkWELHAGe_ic7nRWiRHjE1j7ZwtlhCruS05YAwy5ai2LUH4szJsyoczMjUH3bc6nl_cwR8Q3NlEreqWURDB1IfPlhTC9AOWJGXpvscVkczj_PO8qr7_jSD4TwtaZ6HUU80PcheWxP8NuD-DKsMo4Zs"/>
+<img alt="" class="inline-block h-10 w-10 rounded-full ring-2 ring-white dark:ring-slate-900" data-alt="Candidate avatar profile image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLyN2Tq6E2wnwpBM9d5DFsDbTvmIw3WpbFEFB0aNu3DmucjzFnqM-CV65wqTqNNUm_Czs-P7f3XpB9iHPhZ3RKlYAjmoAoot7WRnJM6D5XNe0kOrh59YCDaODfvg-NYfDTgTqm0wNV9WNN_IIb4BHy_cu8aQ7IXjqfx_UN_rOGfzoLZzntXpU_khgWPAYJXNpI1ui1Y6Bh__tbCtYcFv_oqj49L_w9IUPddSWA2Ai65yQYwQe3C2zeyavouLHUkPF5T2TXaWFCGG8"/>
+<img alt="" class="inline-block h-10 w-10 rounded-full ring-2 ring-white dark:ring-slate-900" data-alt="Candidate avatar profile image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBR1zAH7JPD5I_1abKy2oWkWqDMaGVUfVVTP3qbTjIvplcIljee-qSe0FHfGO8yz2loRE-rZ-veQ2uSl4Whi-d-5OTwMn9JYFC3YCmrvotveurMnsp1pnklzrwVQavvw251y0u1M0CNogVGTsffLnR12CeIRYmNDyDdonJrPQBFqRkm29gtx3ZWcN8RCP0XQu-72X7CBw1wYsE14JVozTgejL-5FKP45-l6MPvqA5wuYrXZmCPPzV42D0nNXMM0kjznbGAzmVSyC6c"/>
+<img alt="" class="inline-block h-10 w-10 rounded-full ring-2 ring-white dark:ring-slate-900" data-alt="Candidate avatar profile image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4wh1eSkyAPVfUYFSeUVZ5ah2ErRFb04aHJ_0_7mAksfs59AY6pXlYkSH08CuWHxbi8iMt3hDWNe-PEtvUuAyXYg5CL39XV8g7Vp6NebhYUko4To3aokBEY5PbiFyfOtYROSeJdZDluqfN9Qj6XSNE-I1s4QDxcg08Q7NptedvwmjFZqFK-iCOnzyqCoOP_TDrufwfPMNfkz8ynzSESZZaB7X56qaXBzgiC7AZos8aMTLRKN6WszjMU_S5Us9l98VOLah_C7sNHsY"/>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
+<div class="px-2">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">Total Members</p>
+<p class="text-lg font-bold leading-none">04 Candidates</p>
+</div>
+</div>
+</header>
+<!-- Performance Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-6xl">psychology</span>
+</div>
+<p class="text-slate-500 text-sm font-semibold mb-1">Aptitude Score</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-4xl font-black text-primary">88<span class="text-lg text-slate-400 font-medium">/100</span></h3>
+<span class="text-green-600 text-xs font-bold bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">+5.2%</span>
+</div>
+<div class="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 88%"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-6xl">terminal</span>
+</div>
+<p class="text-slate-500 text-sm font-semibold mb-1">Technical Score</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-4xl font-black text-primary">74<span class="text-lg text-slate-400 font-medium">/100</span></h3>
+<span class="text-green-600 text-xs font-bold bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">+2.1%</span>
+</div>
+<div class="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 74%"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-6xl">forum</span>
+</div>
+<p class="text-slate-500 text-sm font-semibold mb-1">GD Score</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-4xl font-black text-primary">92<span class="text-lg text-slate-400 font-medium">/100</span></h3>
+<span class="text-red-600 text-xs font-bold bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-full">-1.4%</span>
+</div>
+<div class="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 92%"></div>
+</div>
+</div>
+</div>
+<!-- Detailed Observations -->
+<section>
+<h4 class="text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span> Performance Trends
+                    </h4>
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+<div class="flex flex-col gap-6">
+<div class="flex gap-4">
+<div class="size-12 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 text-primary">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<div>
+<p class="font-bold text-sm">Consistent Technical Performance</p>
+<p class="text-slate-500 text-sm leading-relaxed mt-1">The team has maintained a steady score in algorithm design and architectural planning throughout the last three sprints. Significant improvement noted in collaborative coding sessions.</p>
+</div>
+</div>
+<div class="border-t border-slate-100 dark:border-slate-800 pt-6 flex gap-4">
+<div class="size-12 rounded-lg bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0 text-orange-600">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<p class="font-bold text-sm">Communication Bottlenecks</p>
+<p class="text-slate-500 text-sm leading-relaxed mt-1">Observer logs indicate slight delays in information relay during Group Discussion tasks. Team lead CK-02 is dominant, potentially silencing minor contributors.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Panel: HR Scoring Form -->
+<div class="w-[420px] flex-shrink-0 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shadow-2xl relative z-10">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800">
+<h3 class="text-xl font-extrabold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">rate_review</span> Evaluation Form
+                    </h3>
+<p class="text-slate-500 text-xs font-medium uppercase mt-1 tracking-wider">Round 3: Behavioural Assessment</p>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+<!-- Scoring Sliders -->
+<div class="space-y-6">
+<div>
+<div class="flex justify-between items-center mb-4">
+<label class="text-sm font-bold text-slate-700 dark:text-slate-300">Cultural Fit</label>
+<span class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-lg tracking-wider">8.5 / 10</span>
+</div>
+<div class="flex justify-between gap-1">
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">1</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">2</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">3</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">4</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">5</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">6</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">7</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold bg-primary text-white border border-primary">8</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">9</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">10</button>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-4">
+<label class="text-sm font-bold text-slate-700 dark:text-slate-300">Leadership Potential</label>
+<span class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-lg tracking-wider">7.0 / 10</span>
+</div>
+<div class="flex justify-between gap-1">
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">1</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">2</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">3</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">4</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">5</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">6</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold bg-primary text-white border border-primary">7</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">8</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">9</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">10</button>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-4">
+<label class="text-sm font-bold text-slate-700 dark:text-slate-300">Problem Solving</label>
+<span class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-lg tracking-wider">9.0 / 10</span>
+</div>
+<div class="flex justify-between gap-1">
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">1</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">2</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">3</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">4</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">5</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">6</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">7</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">8</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold bg-primary text-white border border-primary">9</button>
+<button class="size-8 rounded-lg flex items-center justify-center text-xs font-bold border border-slate-200 dark:border-slate-800 hover:border-primary hover:text-primary transition-colors">10</button>
+</div>
+</div>
+</div>
+<!-- Observer Tags -->
+<div>
+<label class="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-3">Observer Tags</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 rounded-full bg-primary text-white text-xs font-bold flex items-center gap-1.5">
+                                Articulate <span class="material-symbols-outlined text-sm">check_circle</span>
+</button>
+<button class="px-3 py-1.5 rounded-full bg-primary text-white text-xs font-bold flex items-center gap-1.5">
+                                Team Player <span class="material-symbols-outlined text-sm">check_circle</span>
+</button>
+<button class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold hover:bg-primary/10 hover:text-primary transition-colors">
+                                Conflict Resolver
+                            </button>
+<button class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold hover:bg-primary/10 hover:text-primary transition-colors">
+                                Strategic Thinker
+                            </button>
+<button class="px-3 py-1.5 rounded-full bg-primary text-white text-xs font-bold flex items-center gap-1.5">
+                                Proactive <span class="material-symbols-outlined text-sm">check_circle</span>
+</button>
+<button class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold hover:bg-primary/10 hover:text-primary transition-colors">
+                                Empathetic
+                            </button>
+</div>
+</div>
+<!-- Feedback Area -->
+<div>
+<label class="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-3">HR Feedback &amp; Comments</label>
+<textarea class="w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-sm focus:ring-primary focus:border-primary placeholder-slate-400" placeholder="Type detailed behavioral observations here..." rows="6"></textarea>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="p-6 border-t border-slate-100 dark:border-slate-800 space-y-3">
+<button class="w-full py-4 bg-primary text-white rounded-full font-bold text-sm shadow-lg shadow-primary/25 hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-xl">send</span>
+                        Submit Evaluation
+                    </button>
+<button class="w-full py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 rounded-full font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                        Save Draft
+                    </button>
+</div>
+</div>
+</main>
+</div>
+</body></html>

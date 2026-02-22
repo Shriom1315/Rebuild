@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RecruitSim | Participation Summary</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#2463eb",
+                "background-light": "#f6f6f8",
+                "background-dark": "#111621",
+              },
+              fontFamily: {
+                "display": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            },
+          },
+        }
+      </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-6 md:px-10 py-4 sticky top-0 z-50">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-2xl">rocket_launch</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold tracking-tight">RecruitSim</h2>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-xs font-semibold text-slate-900 dark:text-white">Alex Johnson</p>
+<p class="text-[10px] text-slate-500">Student ID: #8821</p>
+</div>
+<div class="size-10 rounded-full bg-primary/20 flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-sm overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Profile picture of a young male student" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCh-dwsxdlzbo9xKHBscx2qsZw3z-VdQtG4o2h6z0sO4rYSzKJ3QgpXsrF4Snu4Q4vvI4YdUKYvMH6_ReXkra2fMcCzUiqEhXL_rBO51o6jLa6vVE5RLjgIwUCTtauw2ia4LW4emPKM0bWH49w0xWopRWFU0QCU-V1v843vBDPUvE9vY3iMqduXpSILtWFuf1wTDGjSR4QsD6iOq-Y_QPckEPTZO0raubr9uTX8FWWg6RwWTi7NMBX7nFaAwy4UmBYwtjpueIErM-A"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-4xl mx-auto px-6 py-12">
+<!-- Hero Section -->
+<div class="text-center mb-12">
+<div class="inline-flex items-center justify-center p-3 bg-primary/5 rounded-full mb-6">
+<span class="material-symbols-outlined text-primary text-4xl">celebration</span>
+</div>
+<h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">Great effort, Alex!</h1>
+<p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                Thank you for participating in the RecruitSim Challenge. While you didn't advance to the next round this time, your performance shows significant promise. Keep refining your skills!
+            </p>
+</div>
+<!-- Performance Summary Card -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
+<div class="p-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+<!-- Score Metric -->
+<div class="text-center md:text-left flex flex-col items-center md:items-start">
+<span class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Total Score</span>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-bold text-slate-900 dark:text-white">740</span>
+<span class="text-slate-400">/ 1000</span>
+</div>
+<div class="mt-4 w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 74%"></div>
+</div>
+<p class="mt-2 text-xs text-slate-500">Top 15% of all participants</p>
+</div>
+<!-- Rank Metric -->
+<div class="text-center md:text-left flex flex-col items-center md:items-start border-y md:border-y-0 md:border-x border-slate-100 dark:border-slate-800 py-6 md:py-0 md:px-8">
+<span class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Final Rank</span>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-bold text-slate-900 dark:text-white">#42</span>
+<span class="text-slate-400">of 500</span>
+</div>
+<div class="mt-4 flex gap-1">
+<span class="material-symbols-outlined text-primary/40 text-sm">stars</span>
+<span class="material-symbols-outlined text-primary/40 text-sm">stars</span>
+<span class="material-symbols-outlined text-primary/40 text-sm">stars</span>
+<span class="material-symbols-outlined text-primary text-sm">stars</span>
+<span class="material-symbols-outlined text-primary text-sm">stars</span>
+</div>
+<p class="mt-2 text-xs text-slate-500">Exceptional Logic Performance</p>
+</div>
+<!-- Cutoff Metric -->
+<div class="text-center md:text-left flex flex-col items-center md:items-start">
+<span class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Qualifying Cutoff</span>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-bold text-slate-900 dark:text-white">785</span>
+</div>
+<p class="mt-4 text-xs text-slate-500 leading-tight">You were just <span class="text-primary font-bold">45 points</span> away from qualifying for Round 2.</p>
+</div>
+</div>
+</div>
+<!-- Participation Certificate Area -->
+<div class="bg-primary/[0.03] dark:bg-primary/5 border-t border-slate-100 dark:border-slate-800 p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<div class="size-12 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center shadow-sm text-primary">
+<span class="material-symbols-outlined text-3xl">workspace_premium</span>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white">Participation Certificate</h4>
+<p class="text-sm text-slate-500">Official recognition for completing Round 1</p>
+</div>
+</div>
+<button class="w-full md:w-auto flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-semibold hover:bg-blue-700 transition-all shadow-md shadow-primary/20">
+<span class="material-symbols-outlined text-xl">download</span>
+                    Download Certificate
+                </button>
+</div>
+</div>
+<!-- Next Steps -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary/30 transition-colors">
+<div class="size-10 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined">menu_book</span>
+</div>
+<h3 class="font-bold text-lg mb-2">Detailed Feedback</h3>
+<p class="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">View a question-by-question breakdown of your performance to understand your strengths and weaknesses.</p>
+<a class="text-primary text-sm font-semibold flex items-center gap-1 hover:underline" href="#">
+                    View Report <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</a>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary/30 transition-colors">
+<div class="size-10 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined">school</span>
+</div>
+<h3 class="font-bold text-lg mb-2">Learning Resources</h3>
+<p class="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">Based on your score, we've curated specific modules to help you prepare for your next career challenge.</p>
+<a class="text-primary text-sm font-semibold flex items-center gap-1 hover:underline" href="#">
+                    Explore Modules <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Footer Footer -->
+<footer class="mt-16 text-center text-slate-500 pb-10">
+<p class="text-sm">Questions about your results? <a class="text-primary hover:underline" href="#">Contact Support</a></p>
+<div class="flex justify-center gap-6 mt-8">
+<a class="text-slate-400 hover:text-primary" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-slate-400 hover:text-primary" href="#"><span class="material-symbols-outlined">groups</span></a>
+<a class="text-slate-400 hover:text-primary" href="#"><span class="material-symbols-outlined">share</span></a>
+</div>
+</footer>
+</main>
+</body></html>

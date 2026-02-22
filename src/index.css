@@ -1,0 +1,338 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================================
+   RECRUITSIM — CLOTHY-INSPIRED DESIGN SYSTEM
+   Clean whites, bold orange, editorial typography
+   ================================================ */
+
+@layer base {
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #FFFFFF;
+    color: #1A1A1A;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: rgba(255, 107, 0, 0.15);
+    color: #0A0A0A;
+  }
+
+  /* Custom Scrollbar — minimal */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #FAFAFA;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #E0E0E0;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #BDBDBD;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    color: #0A0A0A;
+  }
+}
+
+/* Google Material Symbols */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+code {
+  font-family: 'Fira Code', monospace;
+}
+
+/* ================================================
+   COMPONENT LAYER
+   ================================================ */
+@layer components {
+
+  /* ---------- Outlined Text (editorial style) ---------- */
+  .text-outline {
+    -webkit-text-stroke: 2px #0A0A0A;
+    color: transparent;
+  }
+
+  .text-outline-white {
+    -webkit-text-stroke: 2px #FFFFFF;
+    color: transparent;
+  }
+
+  .text-outline-orange {
+    -webkit-text-stroke: 2px #FF6B00;
+    color: transparent;
+  }
+
+  /* ---------- Orange blob decoration ---------- */
+  .blob-orange {
+    position: absolute;
+    background: #FF6B00;
+    border-radius: 50% 40% 60% 50% / 50% 60% 40% 50%;
+    z-index: 0;
+  }
+
+  /* ---------- Pill Button (Primary) ---------- */
+  .btn-pill {
+    @apply inline-flex items-center justify-center gap-2 font-sans font-semibold text-sm px-7 py-3 rounded-pill transition-all duration-300;
+  }
+
+  .btn-pill-brand {
+    @apply btn-pill bg-brand text-white hover:bg-brand-600 hover:shadow-glow-orange active:scale-[0.97];
+  }
+
+  .btn-pill-dark {
+    @apply btn-pill bg-dark text-white hover:bg-dark-50 active:scale-[0.97];
+  }
+
+  .btn-pill-outline {
+    @apply btn-pill bg-transparent text-dark border-2 border-dark hover:bg-dark hover:text-white active:scale-[0.97];
+  }
+
+  .btn-pill-outline-white {
+    @apply btn-pill bg-transparent text-white border-2 border-white/30 hover:bg-white/10 active:scale-[0.97];
+  }
+
+  /* ---------- Feature / Product Card ---------- */
+  .feature-card {
+    @apply bg-white border border-light-200 rounded-2xl p-6 md:p-8 transition-all duration-300;
+  }
+
+  .feature-card:hover {
+    @apply shadow-card-hover border-brand/20 -translate-y-1;
+  }
+
+  /* ---------- Circle container (for images / icons) ---------- */
+  .circle-frame {
+    @apply rounded-full overflow-hidden flex items-center justify-center;
+  }
+
+  /* ---------- Section label (small uppercase) ---------- */
+  .section-label {
+    @apply inline-flex items-center gap-2 text-xs font-sans font-bold uppercase tracking-[0.15em] text-brand;
+  }
+
+  /* ---------- Dark input ---------- */
+  .input-field {
+    @apply w-full px-5 py-3.5 rounded-2xl bg-light-100 border border-light-200 text-dark placeholder-light-400 focus:ring-2 focus:ring-brand/30 focus:border-brand/40 outline-none transition-all font-sans text-sm;
+  }
+}
+
+/* ================================================
+   ANIMATIONS
+   ================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes blobMorph {
+
+  0%,
+  100% {
+    border-radius: 50% 40% 60% 50% / 50% 60% 40% 50%;
+  }
+
+  25% {
+    border-radius: 40% 60% 50% 50% / 60% 40% 50% 50%;
+  }
+
+  50% {
+    border-radius: 60% 50% 40% 50% / 40% 50% 60% 50%;
+  }
+
+  75% {
+    border-radius: 50% 50% 50% 60% / 50% 50% 50% 40%;
+  }
+}
+
+@keyframes gradient {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideRight {
+  animation: slideRight 0.8s ease-out forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-blob {
+  animation: blobMorph 8s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-fadeInDelay {
+  animation: fadeIn 1s ease-out forwards 0.4s;
+  opacity: 0;
+}
+
+.shadow-glow-brand {
+  box-shadow: 0 0 40px -10px rgba(37, 99, 235, 0.4);
+}
+
+/* Delay utilities */
+.animation-delay-100 {
+  animation-delay: 0.1s;
+  animation-fill-mode: backwards;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+  animation-fill-mode: backwards;
+}
+
+.animation-delay-300 {
+  animation-delay: 0.3s;
+  animation-fill-mode: backwards;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+  animation-fill-mode: backwards;
+}
+
+.animation-delay-500 {
+  animation-delay: 0.5s;
+  animation-fill-mode: backwards;
+}
+
+.animation-delay-600 {
+  animation-delay: 0.6s;
+  animation-fill-mode: backwards;
+}
+
+.animation-delay-800 {
+  animation-delay: 0.8s;
+  animation-fill-mode: backwards;
+}
+
+/* ================================================
+   MOBILE RESPONSIVE
+   ================================================ */
+@media (max-width: 640px) {
+  .text-responsive {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+  }
+}

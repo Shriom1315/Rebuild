@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RecruitSim Live Lobby Monitor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "accent-yellow": "#FBBF24",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 py-3">
+<div class="max-w-[1600px] mx-auto flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined text-2xl">leaderboard</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">RecruitSim <span class="text-primary font-medium text-sm ml-1 px-2 py-0.5 bg-primary/10 rounded-full">Admin</span></h1>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">Live Lobby</a>
+<a class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors" href="#">Judging</a>
+<a class="text-sm font-semibold text-slate-500 hover:text-primary transition-colors" href="#">Results</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex flex-col items-end mr-4">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Current Time</span>
+<span class="text-sm font-mono font-bold text-slate-700 dark:text-slate-300">14:24:05 GMT</span>
+</div>
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors relative">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<div class="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
+<img alt="Admin Avatar" class="w-full h-full object-cover" data-alt="Professional headshot of an administrative user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4DAs_UaFvHuYHY0V98aB6wMmaFUGrlOQY8MBR7aZE5GDTWEaiSIcE6A7N17Use1tQdjD85XoFxQC4EPQ7Xee0NXYmXhFvrJ7r8gj2Vru2dkaD-OktihSI1mLJLLOds2aT6judtRoRMjYPICdU7JU3Q54LeHYQpL-P-vBbxpxwsxPNXhDcezfzJcgo4jNHqVT6rcC826jxasB9nbKRsBbSAxRTqfj3dZYueFUqne6d5z3Sqe7J9xIjsyMI7f6EsBOnDQnxGumyCtQ"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1600px] mx-auto p-6 space-y-6">
+<!-- Page Header & Main Actions -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<nav class="flex items-center gap-2 text-sm text-slate-500 mb-2">
+<span>Events</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span>Technical Assessment Round</span>
+</nav>
+<h2 class="text-3xl font-black text-slate-900 dark:text-white leading-tight">Live Lobby Monitor</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Real-time team connectivity and readiness tracking</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all font-semibold text-slate-700">
+<span class="material-symbols-outlined text-primary">campaign</span>
+                    Broadcast Message
+                </button>
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/25 hover:bg-blue-700 transition-all font-bold">
+<span class="material-symbols-outlined">play_arrow</span>
+                    Start Round
+                </button>
+</div>
+</div>
+<!-- Lobby Overview (Stats Ribbon) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Teams</span>
+<span class="material-symbols-outlined text-slate-400">groups</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-black text-slate-900 dark:text-white">30</span>
+<span class="text-slate-400 text-sm">/ 30 expected</span>
+</div>
+<div class="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-full"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm font-medium text-slate-500 uppercase tracking-wider">Active</span>
+<span class="material-symbols-outlined text-green-500">check_circle</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-black text-slate-900 dark:text-white">24</span>
+<span class="text-green-500 text-sm font-bold">80% Ready</span>
+</div>
+<div class="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-green-500 h-full w-[80%]"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm font-medium text-slate-500 uppercase tracking-wider">Connecting</span>
+<span class="material-symbols-outlined text-accent-yellow status-pulse">sync</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-black text-slate-900 dark:text-white">4</span>
+<span class="text-accent-yellow text-sm font-bold">In Transit</span>
+</div>
+<div class="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-accent-yellow h-full w-[13%]"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm font-medium text-slate-500 uppercase tracking-wider">Offline</span>
+<span class="material-symbols-outlined text-red-500">error</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-black text-slate-900 dark:text-white">2</span>
+<span class="text-red-500 text-sm font-bold">Missing</span>
+</div>
+<div class="mt-4 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-red-500 h-full w-[7%]"></div>
+</div>
+</div>
+</div>
+<!-- Main Content Area: Teams & Activity -->
+<div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+<!-- Teams Grid (Left - 3/4) -->
+<div class="xl:col-span-3 space-y-4">
+<div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-full text-sm focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search teams or members..." type="text"/>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
+<div class="hidden md:flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">All Teams</button>
+<button class="px-3 py-1.5 rounded-full text-slate-500 text-xs font-bold hover:bg-slate-100">Offline Only</button>
+<button class="px-3 py-1.5 rounded-full text-slate-500 text-xs font-bold hover:bg-slate-100">Low Latency</button>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-lg hover:bg-slate-100 text-slate-500"><span class="material-symbols-outlined">grid_view</span></button>
+<button class="p-2 rounded-lg hover:bg-slate-100 text-slate-500"><span class="material-symbols-outlined">list</span></button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Team Card 1 - Active -->
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border-l-4 border-l-green-500 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white truncate max-w-[150px]">Cyber Knights</h3>
+<p class="text-xs text-slate-500">ID: #RE-4092</p>
+</div>
+<span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-tight">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                Active
+                            </span>
+</div>
+<div class="flex items-center -space-x-2 mb-4">
+<img alt="Member 1" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Profile picture of a male team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQI-PBBExz6Rx8RdvuK6uG-Dr-GwlUVZbotJjARhlk8yEZ_5-A2GOInJans-5LDYIYVq7V57hyOLSjkOS1-scCtedTebp5rO2ZA8HtlnRRjDh6gNxFgBajsigedRAPdqNCwUf4Dgf1zGNfr1dOT77iTbhuKgtuFKGzwLh2cLkvFv6jfw5CUYYK86SEU_HByGuHwGYP1laYruDSQpmNA6GO4J64ReOpdcyCG8x8lUTkJd0tegvKMZNbRC92AZPMXDhkjmHUM6IVp1A"/>
+<img alt="Member 2" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Profile picture of a female team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjm1UTct_eQw23RRrJobG4vUqU7dBoKp7bcaTP5bSQTZJ_P3hvrd-V0HDAwbWs1rIRFIgZ_b9rHIzDlmJt5opKyG1MduJVz0KzxTCpcTMz4RYOnYChW_Kh3TWaKvMGzhfUiDnNT7tzzn9h5rPJlH5KUTl2buOU8iYxtn-7sxmnRZLQi36G-s8st9aQFLy30cFMA7oepO8wCFKJWsH2sAPPH3wEe-mzzK9UY1GFbvLpXP-6AVCBFrR_cYeyA-TuKLJy2e_-wHuC1E4"/>
+<img alt="Member 3" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Profile picture of a male team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApsU4_4KzVpDh8BM2rUukS6rjkVnNcys9-XH4x5Q9WBQTZfoQe3upROjImduWBVLI-5zbgY2aGrRzdjELFbm1ZLyBIAJvIbPP_11RqGtgOSnZaDjAcN7GUeXVb6mjWIb1JKGPhdgNmJOw9YmSkXIS2MP7eTpycauqJF4lhdi9gKnop5Pr5vrgETEjuabZ3_gfUqrNJEFni7KdbMayckm3Vt5iuY0_qujPFxP8cV7EdCd1KJcYypyJPABRWX2IK7GD_9Jq2mbp9kLk"/>
+<div class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100 bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">+1</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-sm">wifi</span>
+<span class="text-xs font-mono font-bold uppercase">24ms</span>
+</div>
+<button class="text-primary hover:text-blue-700 text-xs font-bold uppercase tracking-wider">Inspect</button>
+</div>
+</div>
+<!-- Team Card 2 - Connecting -->
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border-l-4 border-l-accent-yellow border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white truncate max-w-[150px]">Alpha Logic</h3>
+<p class="text-xs text-slate-500">ID: #RE-4105</p>
+</div>
+<span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-black uppercase tracking-tight">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-yellow status-pulse"></span>
+                                Connecting
+                            </span>
+</div>
+<div class="flex items-center -space-x-2 mb-4">
+<img alt="Member 1" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4bIoQwV2Nkm9NpZMpgS2DlQEka3Xmt9ma__s3JoMLVXgdtdELKmCRZx8mjDWOaLh24hQXMyNg6z-KQ10hz_VwduxzgEgdrvSgjmWV_0uD7fEMnfaOyLNI2a1zFeuLv1xAdIY8KjAzG3vOXEintzTG4CkC3ijJHilluXY082bbod8pxK6DMEvNs-wfVGHLjn2b_mEAbVxHp4xnOKFc-Fm2-ME8S2Izp6hb7ZtPEiNu0gh9QAZXr9woxclCl9hgnzCQSZItsyc5WBI"/>
+<img alt="Member 2" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChPmVD-uVmMLFTdGa1mkrGras0MMEtRpS4CmpR1zhUb_0plVabThMEfalArTTrV-XVFa1I0cg0LKy8Q6DnmWSAZ7R0jOTox6wzvE2lmZBMck2_1V9enG-HMgoNq_-ONMI1dj5j1akxVMFKKKGfqQmgpxEY4Pew2M7u7yGVPtOv2i56ZawILB78fsQwalhVP0Q1_apzyGwapYN5DHDizPIkZ41l36eJriRQe1gmoSbpvxpSZyd3VGmJN5D0vy9ogubvRT0bvmxgyWw"/>
+<div class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100 bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">?</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-sm">wifi_off</span>
+<span class="text-xs font-mono font-bold uppercase">---</span>
+</div>
+<button class="text-primary hover:text-blue-700 text-xs font-bold uppercase tracking-wider">Inspect</button>
+</div>
+</div>
+<!-- Team Card 3 - Offline -->
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border-l-4 border-l-red-500 border border-slate-200 dark:border-slate-800 shadow-sm opacity-70 grayscale hover:grayscale-0 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white truncate max-w-[150px]">Data Wizards</h3>
+<p class="text-xs text-slate-500">ID: #RE-3988</p>
+</div>
+<span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-black uppercase tracking-tight">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                Offline
+                            </span>
+</div>
+<div class="flex items-center -space-x-2 mb-4">
+<div class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100 bg-slate-300"></div>
+<div class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100 bg-slate-300"></div>
+<div class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100 bg-slate-300"></div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-1 text-red-400">
+<span class="material-symbols-outlined text-sm">warning</span>
+<span class="text-xs font-mono font-bold uppercase">Timeout</span>
+</div>
+<button class="text-red-500 hover:text-red-700 text-xs font-bold uppercase tracking-wider">Alert</button>
+</div>
+</div>
+<!-- Team Card 4 - Active -->
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border-l-4 border-l-green-500 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white truncate max-w-[150px]">Neural Nexus</h3>
+<p class="text-xs text-slate-500">ID: #RE-4112</p>
+</div>
+<span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-tight">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                Active
+                            </span>
+</div>
+<div class="flex items-center -space-x-2 mb-4">
+<img alt="Member 1" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5q0eGjC5A0DpDEiSEBeYCN7tMTEKLt8_L0-y54pvXJPTaDk1lbdmx_OFAdIXT-MPfq_Z-DEUWf0uVdVrPPOEi8FHaoZusW1Wo60x1RCmvbBkHgS3QCEEm87KM8ffldIhzPu2aHFN_9Y3etGh3zs_BdIqscbVgVqmkJwTTTUuADvY9ScySDrqoNIAit4cXTi_d3t60SHw4wjz_1gM_14z6MMmoNq3gLga6FXtNsizr-j0j8d9zDgoonO-SgU2BYJiPq92TnpT2sxU"/>
+<img alt="Member 2" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6-IYUQ2HwjTe0_wTV1kWHyKVdzpabtLz36OHx7ZZ2yJYEPDpNBz8UWNV6UOvzWZZVd7dxSnN8jFYfzSsNapmgWTp-7Ejy3Nx8Xh7DU7NVMTgUbQTneCLRFIFrG9DR5hjWG0-fhBvzOlay6Om3rDr78GU2Ym2lmieLWSbEYS2McHL7bIYlESTOt-UeP8yKmvfTEl4jRdOfe9QoUVIgYkOnK6I8Tz0pgbNqYhF9KFUC1LdLyVf4CJpH27VcGrNvqrgjjV-M2fjeIPg"/>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-sm">wifi</span>
+<span class="text-xs font-mono font-bold uppercase">12ms</span>
+</div>
+<button class="text-primary hover:text-blue-700 text-xs font-bold uppercase tracking-wider">Inspect</button>
+</div>
+</div>
+<!-- Team Card 5 - Active -->
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border-l-4 border-l-green-500 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white truncate max-w-[150px]">Code Crushers</h3>
+<p class="text-xs text-slate-500">ID: #RE-4050</p>
+</div>
+<span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-tight">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                Active
+                            </span>
+</div>
+<div class="flex items-center -space-x-2 mb-4">
+<img alt="Member 1" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmzify6QsAP9cqJoHWKfotyEtcOdgiq9sG1COkhISJM41nw7TprVhYe4z7g-IMjjW2sDwMkai4FAho4UHE9buji_V7KeHRdNzPudD3rd9O-ik1svOtcIwjQd_WLhlbfC5zPaoWQmeoe6kwtzx0lg5YOEa_2Knv8xXEAXrPovlLGo_v63RUYh9bnwSZ69PnP0gyj1pDAiI0Vq_NoRDY3hnc9lZXQ6ZAknImsISJd1yRhbJ0lCS1LsaBVleVaTOC-5aE-QhYhLr9b_k"/>
+<img alt="Member 2" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0MgJQfBTLPrsATQQcNfFZD4zlX46_mZCA2gaLg2OFfBxwmgC5ttGuWqeXOMjSvRuZUDr8qChERWWjdczDsEC_HhMjDWsLYLwGH2HFxFLPmCIdroWJ8CcvannYXP8CXubnwKu7OOg7CBvbJpFn5HS3z-JRGX4xxS_VVfiwE_chH0gzVX4e0JsVJ75iMZtWywOZafhyYb25GWMytJQVT98RqZw7aRm-T6J_n_-17D055S3T5M3WG0uHB6VHKzHOd3gqajHEQRFNsK0"/>
+<img alt="Member 3" class="h-8 w-8 rounded-full border-2 border-white ring-2 ring-slate-100" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmf38dTUuMg2XvpSETYN7M45QLZ_fVXHs2M5Vko9EL6fRgKrI8qbsiR3l1sa0G0EtTv-dXvI_5Pjez1uZ3LdP31pWJOPkNgwCg4XN8bSdj3CHD4w5vRzhwZIW4BXv079F0wjyryDJPLSID5uk16gBKoR5cMM87hrxCetT-LpAWZLMpgA_gXXhRCLE96RQhLoi5mbxotC33gBkj1FQKlFSs8wF3_WNKUum6kzyEYm30BA_lk5I5pk-iUlnsqDH1tANND-Bms9dmpZg"/>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-sm">wifi</span>
+<span class="text-xs font-mono font-bold uppercase">38ms</span>
+</div>
+<button class="text-primary hover:text-blue-700 text-xs font-bold uppercase tracking-wider">Inspect</button>
+</div>
+</div>
+<!-- Placeholder/Empty Slot -->
+<div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-center py-10">
+<span class="material-symbols-outlined text-slate-300 text-4xl mb-2">add_circle</span>
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest leading-normal">Assign Manual<br/>Team Override</p>
+</div>
+</div>
+</div>
+<!-- Activity Log (Right - 1/4) -->
+<div class="xl:col-span-1 space-y-4">
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col h-full shadow-sm overflow-hidden">
+<div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">pulse_alert</span>
+                            Live Activity
+                        </h3>
+<span class="text-[10px] font-bold text-primary animate-pulse bg-primary/10 px-2 py-0.5 rounded-full uppercase">Live</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6 max-h-[600px] custom-scrollbar">
+<!-- Log Entry -->
+<div class="relative pl-6 border-l-2 border-slate-100 dark:border-slate-800 pb-2">
+<div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white dark:border-slate-900"></div>
+<div class="flex flex-col gap-0.5">
+<span class="text-[10px] font-bold text-slate-400">14:23:45</span>
+<p class="text-xs text-slate-700 dark:text-slate-300">Team <span class="font-bold text-slate-900 dark:text-white">Cyber Knights</span> successfully joined the lobby.</p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="relative pl-6 border-l-2 border-slate-100 dark:border-slate-800 pb-2">
+<div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-primary border-2 border-white dark:border-slate-900"></div>
+<div class="flex flex-col gap-0.5">
+<span class="text-[10px] font-bold text-slate-400">14:22:12</span>
+<p class="text-xs text-slate-700 dark:text-slate-300">Broadcast sent: <span class="italic text-slate-500">"Welcome everyone! Please check your audio."</span></p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="relative pl-6 border-l-2 border-slate-100 dark:border-slate-800 pb-2">
+<div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-accent-yellow border-2 border-white dark:border-slate-900"></div>
+<div class="flex flex-col gap-0.5">
+<span class="text-[10px] font-bold text-slate-400">14:21:05</span>
+<p class="text-xs text-slate-700 dark:text-slate-300"><span class="font-bold text-slate-900 dark:text-white">John Doe</span> (Alpha Logic) is having connectivity issues.</p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="relative pl-6 border-l-2 border-slate-100 dark:border-slate-800 pb-2">
+<div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white dark:border-slate-900"></div>
+<div class="flex flex-col gap-0.5">
+<span class="text-[10px] font-bold text-slate-400">14:18:55</span>
+<p class="text-xs text-slate-700 dark:text-slate-300">Team <span class="font-bold text-slate-900 dark:text-white">Neural Nexus</span> is ready.</p>
+</div>
+</div>
+<!-- Log Entry -->
+<div class="relative pl-6 border-l-2 border-slate-100 dark:border-slate-800 pb-2">
+<div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-red-500 border-2 border-white dark:border-slate-900"></div>
+<div class="flex flex-col gap-0.5">
+<span class="text-[10px] font-bold text-slate-400">14:15:30</span>
+<p class="text-xs text-slate-700 dark:text-slate-300">Admin <span class="font-bold text-slate-900 dark:text-white">Sarah Smith</span> manually disconnected Team 'Glitched'.</p>
+</div>
+</div>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-slate-800/50">
+<button class="w-full py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 transition-all uppercase tracking-widest">Download Event Log</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Global Floating Action Button for Emergency Broadcast (Mobile Only) -->
+<button class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center z-[100]">
+<span class="material-symbols-outlined">campaign</span>
+</button>
+</body></html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Team | RecruitSim Student Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "accent-yellow": "#FBBF24",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .geometric-bg {
+            background-image: radial-gradient(circle at 2px 2px, rgba(36, 99, 235, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 bg-primary rounded-xl flex items-center justify-center text-white">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-none">RecruitSim</h1>
+<p class="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Student Portal</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 mt-4">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium">My Team</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">trophy</span>
+<span class="font-medium">Rounds</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-medium">Leaderboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<button class="w-full flex items-center gap-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<div class="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar of Alex Johnson" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlNOupCqNVK-usfQV8Nx32EC2mRT7K4Enr0HRKgs2A6yNw_V8pII1uRNpQSAYGNj5NLodycEhvGDxdC3BN8ZwoD7BxQ_rPyWxzROJTj7LEeELUyn2bZnu6e9FLIX72uLGJbBlJN_bxR234OHqr9eDhDwk9x-hsOX52Gvo9kt3wKtblSrLsxVtG4dSGn9z_q9l-JPAd9rN3BHf8alHifhyRaG0vH-TjgWfO_xuu5JT4QKiioLG65eBI4L0yWlUAKuv5-ZCillrulvM"/>
+</div>
+<div class="flex-1 text-left truncate">
+<p class="text-sm font-semibold truncate">Alex Johnson</p>
+<p class="text-xs text-slate-500">View Profile</p>
+</div>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+<!-- Background Decoration -->
+<div class="absolute inset-0 geometric-bg pointer-events-none -z-10"></div>
+<div class="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10 -translate-y-1/2 translate-x-1/2"></div>
+<div class="absolute bottom-0 left-0 w-64 h-64 bg-accent-yellow/5 rounded-full blur-3xl -z-10 translate-y-1/2 -translate-x-1/2"></div>
+<!-- Header -->
+<header class="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div>
+<h2 class="text-2xl font-black tracking-tight flex items-center gap-2">
+                        My Team
+                        <span class="text-slate-400 font-medium">/</span>
+<span class="text-primary">Team Alpha</span>
+</h2>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-lg">edit</span>
+                        Edit Team
+                    </button>
+<button class="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-full font-bold text-sm shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-lg">person_add</span>
+                        Invite Member
+                    </button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8">
+<div class="max-w-7xl mx-auto space-y-8">
+<!-- Team Overview Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5 group hover:shadow-md transition-all">
+<div class="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">key</span>
+</div>
+<div>
+<p class="text-sm font-medium text-slate-500">Team Code</p>
+<div class="flex items-center gap-2">
+<p class="text-xl font-bold tracking-tight">#RS-7721</p>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5 group hover:shadow-md transition-all">
+<div class="size-14 rounded-2xl bg-accent-yellow/10 flex items-center justify-center text-accent-yellow">
+<span class="material-symbols-outlined text-3xl">military_tech</span>
+</div>
+<div>
+<p class="text-sm font-medium text-slate-500">Current Ranking</p>
+<p class="text-xl font-bold tracking-tight">12<span class="text-sm text-slate-400 font-medium">th</span> <span class="text-slate-400 font-medium">/ 200</span></p>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5 group hover:shadow-md transition-all">
+<div class="size-14 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-500">
+<span class="material-symbols-outlined text-3xl">stars</span>
+</div>
+<div>
+<p class="text-sm font-medium text-slate-500">Total Points</p>
+<p class="text-xl font-bold tracking-tight">4,500 <span class="text-sm text-slate-400 font-medium">pts</span></p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
+<!-- Left: Team Members Grid -->
+<div class="xl:col-span-2 space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="text-xl font-bold">Team Members <span class="text-slate-400 font-medium">(3/4)</span></h3>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Member Card 1 -->
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary/50 transition-all group">
+<div class="flex items-start justify-between mb-4">
+<div class="size-16 rounded-full overflow-hidden border-2 border-primary ring-4 ring-primary/5">
+<img class="w-full h-full object-cover" data-alt="Portrait of Alex Johnson" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8Tb487tMDWDXPU2eWz-SmWJHDI3ABUwrAJCdt45C_toqZWEaz2e_ytpMP3VE_iPMM684koTpBWFTr22mSxs7hqJLU0Td5qmr1GjmKnq0B7NJf_LuyB0OnBgU0lmsRjU5Lwq35q8M5a-n0ZgdFIVT41XQnpAIENjk31ULGM7ZhZr4WJYGAmioabXjvTxU6iFHbYsZFOB2_7g2Bh1wvoXwjbgxUToTRIbk8HQ8JxqCsx29d3fHH26nH3T3IbNTdCDZcHaZi7cRtmRw"/>
+</div>
+<span class="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full">Captain</span>
+</div>
+<div class="mb-4">
+<h4 class="text-lg font-bold">Alex Johnson (You)</h4>
+<p class="text-sm text-slate-500">Full Stack Developer</p>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider">
+<span class="text-slate-400">Readiness</span>
+<span class="text-primary">100%</span>
+</div>
+<div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-full"></div>
+</div>
+<div class="flex flex-wrap gap-2 pt-2">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-400">React</span>
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-400">Node.js</span>
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-400">AWS</span>
+</div>
+</div>
+</div>
+<!-- Member Card 2 -->
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary/50 transition-all group">
+<div class="flex items-start justify-between mb-4">
+<div class="size-16 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary/20 transition-all">
+<img class="w-full h-full object-cover" data-alt="Portrait of Sarah Chen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6eG2eg7ioELF3P3LyAskRwEtZH5ij6aNGxHP8vLetkUJGBrp6SSXbDamepl7tqrnPG2Y0FHPVqJfIu6quASuz5uMQ4CMmbuOyh8n6rDeOkUmsVK4nIX3M832EuRB09fRboCYZy38ZkPpUzfOQUQq7bWaHonGylu3SD7D4yyFFX7sTN6C02ovlsfu-lzCHvr55ekCvi6SzRjz6DS09t96AoloCZd5y77ha-tdaC-MYZCfDTBCIN4b7uH4DWHwNjOJHWHteSsEZ9T4"/>
+</div>
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-full">Member</span>
+</div>
+<div class="mb-4">
+<h4 class="text-lg font-bold">Sarah Chen</h4>
+<p class="text-sm text-slate-500">UI/UX Designer</p>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider">
+<span class="text-slate-400">Readiness</span>
+<span class="text-accent-yellow">85%</span>
+</div>
+<div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-accent-yellow rounded-full w-[85%]"></div>
+</div>
+<div class="flex flex-wrap gap-2 pt-2">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-400">Figma</span>
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-400">Prototyping</span>
+</div>
+</div>
+</div>
+<!-- Member Card 3 -->
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary/50 transition-all group">
+<div class="flex items-start justify-between mb-4">
+<div class="size-16 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary/20 transition-all">
+<img class="w-full h-full object-cover" data-alt="Portrait of Michael Park" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPqL5scCD6GzesHjEkiOtN53b5__KePJBXPoAzVbAgus1J41HOMEI3iI0NHmNtANVTlEpisMf0Tvt06srU1l96ZcBRAdGcGsWwIX84loWKvbjoIL4xJEIAIYK7igXr2kmwJxLRHTgj-J8TgKe2JiaGV_dYCjkDnF-YMYamgndeVBhbpP1Dmk7wWq8OS1QpfIVlNgkbU21iPq1lsx5V7IHNaaXZYR1-3DWN4LtOYXQmezfr7ros4DhhavS2byDc41ayod5rvZgSWdA"/>
+</div>
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-full">Member</span>
+</div>
+<div class="mb-4">
+<h4 class="text-lg font-bold">Michael Park</h4>
+<p class="text-sm text-slate-500">Data Analyst</p>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider">
+<span class="text-slate-400">Readiness</span>
+<span class="text-primary">92%</span>
+</div>
+<div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[92%]"></div>
+</div>
+<div class="flex flex-wrap gap-2 pt-2">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-400">Python</span>
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-400">SQL</span>
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-400">Tableau</span>
+</div>
+</div>
+</div>
+<!-- Empty Slot / Invite Member -->
+<div class="border-2 border-dashed border-slate-300 dark:border-slate-700 p-5 rounded-2xl flex flex-col items-center justify-center text-center group cursor-pointer hover:bg-white/50 dark:hover:bg-slate-800/50 hover:border-primary transition-all">
+<div class="size-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all mb-3">
+<span class="material-symbols-outlined text-3xl">add</span>
+</div>
+<h4 class="text-lg font-bold text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">Empty Slot</h4>
+<p class="text-xs text-slate-400 mt-1 max-w-[150px]">Invite a new teammate to complete your squad</p>
+<button class="mt-4 px-4 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold rounded-full group-hover:bg-primary/10 group-hover:text-primary transition-all">Invite Now</button>
+</div>
+</div>
+</div>
+<!-- Right: Activity Feed -->
+<div class="xl:col-span-1 space-y-6">
+<h3 class="text-xl font-bold">Team Activity</h3>
+<div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+<p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Recent Events</p>
+</div>
+<div class="p-5 space-y-6">
+<div class="flex gap-4 relative">
+<div class="absolute left-4 top-10 bottom-0 w-0.5 bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
+<div class="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 z-10">
+<span class="material-symbols-outlined text-sm">edit</span>
+</div>
+<div>
+<p class="text-sm font-medium"><span class="font-bold">Sarah Chen</span> updated her profile</p>
+<p class="text-xs text-slate-400 mt-1">2 hours ago</p>
+</div>
+</div>
+<div class="flex gap-4 relative">
+<div class="absolute left-4 top-10 bottom-0 w-0.5 bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
+<div class="size-8 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 flex-shrink-0 z-10">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+</div>
+<div>
+<p class="text-sm font-medium">Team reached <span class="font-bold">4,500 points</span>!</p>
+<p class="text-xs text-slate-400 mt-1">5 hours ago</p>
+</div>
+</div>
+<div class="flex gap-4 relative">
+<div class="absolute left-4 top-10 bottom-0 w-0.5 bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
+<div class="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 z-10">
+<span class="material-symbols-outlined text-sm">upload_file</span>
+</div>
+<div>
+<p class="text-sm font-medium"><span class="font-bold">Michael Park</span> uploaded Round 1 report</p>
+<p class="text-xs text-slate-400 mt-1">Yesterday at 14:30</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="size-8 rounded-full bg-accent-yellow/10 flex items-center justify-center text-accent-yellow flex-shrink-0 z-10">
+<span class="material-symbols-outlined text-sm">person_add</span>
+</div>
+<div>
+<p class="text-sm font-medium">Sent invite to <span class="font-bold">David L.</span></p>
+<p class="text-xs text-slate-400 mt-1">Yesterday at 09:12</p>
+</div>
+</div>
+</div>
+<button class="w-full p-4 text-sm font-bold text-primary hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-t border-slate-200 dark:border-slate-800">
+                                    View All Activity
+                                </button>
+</div>
+<!-- Helpful Tips Card -->
+<div class="bg-primary rounded-2xl p-6 text-white shadow-lg shadow-primary/25 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full translate-x-1/2 -translate-y-1/2"></div>
+<h4 class="text-lg font-bold mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined">lightbulb</span>
+                                    Team Tip
+                                </h4>
+<p class="text-sm text-primary-50 opacity-90 leading-relaxed">
+                                    Keep your team readiness above 90% to earn extra "Synchronized" bonuses in the upcoming round.
+                                </p>
+<button class="mt-4 px-4 py-2 bg-white text-primary rounded-full text-xs font-black uppercase tracking-wider hover:bg-blue-50 transition-all">
+                                    Learn More
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

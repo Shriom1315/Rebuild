@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RecruitSim | Teams Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .geometric-accent-1 {
+            background: radial-gradient(circle at 0% 0%, rgba(36, 99, 235, 0.05) 0%, transparent 50%);
+        }
+        .geometric-accent-2 {
+            background: radial-gradient(circle at 100% 100%, rgba(36, 99, 235, 0.05) 0%, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen relative overflow-x-hidden">
+<!-- Background Accents -->
+<div class="fixed inset-0 pointer-events-none geometric-accent-1 z-0"></div>
+<div class="fixed inset-0 pointer-events-none geometric-accent-2 z-0"></div>
+<div class="flex relative z-10">
+<!-- Sidebar Navigation -->
+<aside class="w-72 h-screen sticky top-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-xl border-r border-primary/10 flex flex-col p-6">
+<div class="flex items-center gap-3 mb-10">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h1 class="text-lg font-bold tracking-tight">RecruitSim</h1>
+<p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Admin Console</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-full text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all group" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full bg-primary text-white shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined leading-none">group</span>
+<span class="font-medium">Teams</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-medium">Participants</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-medium">Rounds</span>
+</a>
+</nav>
+<div class="pt-6 border-t border-primary/5">
+<a class="flex items-center gap-3 px-4 py-3 rounded-full text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+<div class="mt-6 p-4 bg-primary/5 rounded-2xl flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary/20">
+<img alt="Admin Profile" data-alt="User avatar for administrative profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANtf_JCwk4KPEi4sFng2FRZB3Q6LIx7X0ysvsDReIUi8ew6lWgeWVrO1iWgQs64pro_ka_ilATHiDynTBzDmVqu512OHswIhEjy7PIbFHsO6IJFt7cjOkv0kH0VIQQa26e0pzHd8LkaTrJFl6acgLLGTgwTtmr9hA9_qF4lX2A030-PRf6-HtU2FatVDE43owwzG01oRtzcpNjE2EFpJok8GIlCeEU7epcD5N5yPsfRc2EH9Txn_mmw6Ucz7a795gtUPRoxoBdHw8"/>
+</div>
+<div>
+<p class="text-sm font-bold truncate">Alex Chen</p>
+<p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Super Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 p-8 lg:p-12">
+<!-- Header -->
+<header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
+<div>
+<h2 class="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Teams Management</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1 font-medium">Oversee recruitment teams, manage status, and track real-time scores.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-full font-bold text-sm hover:shadow-md transition-all">
+<span class="material-symbols-outlined text-lg">qr_code</span>
+<span>Generate Codes</span>
+</button>
+<button class="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-bold text-sm shadow-xl shadow-primary/25 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>Create New Team</span>
+</button>
+</div>
+</header>
+<!-- Search and Filter Bar -->
+<div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md p-4 rounded-3xl border border-white dark:border-slate-700 flex flex-col md:flex-row gap-4 mb-8">
+<div class="relative flex-1 group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all" placeholder="Search team name, code or member..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative">
+<select class="appearance-none bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-full pl-6 pr-10 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer">
+<option>All Rounds</option>
+<option>Round 1: Screening</option>
+<option>Round 2: Assessment</option>
+<option>Round 3: Interview</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-full pl-6 pr-10 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer">
+<option>All Status</option>
+<option>Ready</option>
+<option>In-Progress</option>
+<option>Eliminated</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">filter_list</span>
+</div>
+</div>
+</div>
+<!-- Teams Table Container -->
+<div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-slate-200/50 dark:border-slate-800/50 overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
+<th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-slate-500">Team Code</th>
+<th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-slate-500">Team Name</th>
+<th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-slate-500 text-center">Members</th>
+<th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-slate-500">Status</th>
+<th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-slate-500 text-right">Score</th>
+<th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-slate-500 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Team Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-5">
+<span class="font-mono text-sm bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-slate-700 dark:text-slate-300">RS-1024</span>
+</td>
+<td class="px-8 py-5">
+<p class="font-bold text-slate-800 dark:text-slate-200">Cyber Sentinels</p>
+<p class="text-xs text-slate-500">Created Oct 12, 2023</p>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center justify-center -space-x-2">
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-blue-500 flex items-center justify-center text-[10px] text-white font-bold">JD</div>
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-purple-500 flex items-center justify-center text-[10px] text-white font-bold">AS</div>
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-emerald-500 flex items-center justify-center text-[10px] text-white font-bold">ML</div>
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] text-slate-600 dark:text-slate-400 font-bold">+1</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold border border-blue-200 dark:border-blue-800">
+<span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                        In-Progress
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right font-black text-slate-800 dark:text-slate-200">1,250</td>
+<td class="px-8 py-5 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-primary hover:bg-primary/10 p-2 rounded-full transition-all">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</td>
+</tr>
+<!-- Team Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-5">
+<span class="font-mono text-sm bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-slate-700 dark:text-slate-300">RS-2081</span>
+</td>
+<td class="px-8 py-5">
+<p class="font-bold text-slate-800 dark:text-slate-200">Digital Nomads</p>
+<p class="text-xs text-slate-500">Created Oct 14, 2023</p>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center justify-center -space-x-2">
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-orange-500 flex items-center justify-center text-[10px] text-white font-bold">RK</div>
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-indigo-500 flex items-center justify-center text-[10px] text-white font-bold">TH</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        Ready
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right font-black text-slate-800 dark:text-slate-200">0</td>
+<td class="px-8 py-5 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-primary hover:bg-primary/10 p-2 rounded-full transition-all">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</td>
+</tr>
+<!-- Team Row 3 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-5">
+<span class="font-mono text-sm bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-slate-700 dark:text-slate-300">RS-0942</span>
+</td>
+<td class="px-8 py-5">
+<p class="font-bold text-slate-800 dark:text-slate-200">Code Breakers</p>
+<p class="text-xs text-slate-500">Created Oct 08, 2023</p>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center justify-center -space-x-2">
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-pink-500 flex items-center justify-center text-[10px] text-white font-bold">SW</div>
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-yellow-500 flex items-center justify-center text-[10px] text-white font-bold">PN</div>
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-cyan-500 flex items-center justify-center text-[10px] text-white font-bold">BB</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-xs font-bold border border-rose-200 dark:border-rose-800">
+<span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                        Eliminated
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right font-black text-slate-400">420</td>
+<td class="px-8 py-5 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-primary hover:bg-primary/10 p-2 rounded-full transition-all">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</td>
+</tr>
+<!-- Team Row 4 -->
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-5">
+<span class="font-mono text-sm bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-slate-700 dark:text-slate-300">RS-4421</span>
+</td>
+<td class="px-8 py-5">
+<p class="font-bold text-slate-800 dark:text-slate-200">Binary Boomers</p>
+<p class="text-xs text-slate-500">Created Oct 15, 2023</p>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center justify-center -space-x-2">
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-violet-500 flex items-center justify-center text-[10px] text-white font-bold">KC</div>
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-red-500 flex items-center justify-center text-[10px] text-white font-bold">DR</div>
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-teal-500 flex items-center justify-center text-[10px] text-white font-bold">SJ</div>
+<div class="w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-lime-500 flex items-center justify-center text-[10px] text-white font-bold">WF</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold border border-blue-200 dark:border-blue-800">
+<span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                        In-Progress
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right font-black text-slate-800 dark:text-slate-200">2,890</td>
+<td class="px-8 py-5 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-primary hover:bg-primary/10 p-2 rounded-full transition-all">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="px-8 py-4 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
+<p class="text-sm text-slate-500">Showing <span class="font-bold text-slate-800 dark:text-slate-200">1-4</span> of <span class="font-bold text-slate-800 dark:text-slate-200">42</span> teams</p>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 cursor-not-allowed">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold text-sm">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary transition-colors text-slate-600 dark:text-slate-300 font-bold text-sm">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary transition-colors text-slate-600 dark:text-slate-300 font-bold text-sm">3</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary transition-colors text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Footer Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
+<div class="bg-white/40 dark:bg-slate-800/40 p-6 rounded-3xl border border-white/50 dark:border-slate-700/50">
+<p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Total Teams</p>
+<p class="text-3xl font-black">42</p>
+</div>
+<div class="bg-white/40 dark:bg-slate-800/40 p-6 rounded-3xl border border-white/50 dark:border-slate-700/50">
+<p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Active Members</p>
+<p class="text-3xl font-black">156</p>
+</div>
+<div class="bg-white/40 dark:bg-slate-800/40 p-6 rounded-3xl border border-white/50 dark:border-slate-700/50">
+<p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Ready to Round</p>
+<p class="text-3xl font-black text-emerald-500">12</p>
+</div>
+<div class="bg-white/40 dark:bg-slate-800/40 p-6 rounded-3xl border border-white/50 dark:border-slate-700/50">
+<p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Eliminated</p>
+<p class="text-3xl font-black text-rose-500">8</p>
+</div>
+</div>
+</main>
+</div>
+</body></html>
