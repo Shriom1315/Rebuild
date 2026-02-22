@@ -51,7 +51,7 @@ export function ShaderAnimation() {
     `
 
         // Initialize Three.js scene
-        const camera = new THREE.Camera()
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10)
         camera.position.z = 1
 
         const scene = new THREE.Scene()
@@ -83,6 +83,11 @@ export function ShaderAnimation() {
             renderer.setSize(width, height)
             uniforms.resolution.value.x = renderer.domElement.width
             uniforms.resolution.value.y = renderer.domElement.height
+
+            if (camera instanceof THREE.PerspectiveCamera) {
+                camera.aspect = width / height
+                camera.updateProjectionMatrix()
+            }
         }
 
         // Initial resize
