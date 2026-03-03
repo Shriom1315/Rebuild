@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import SetupGuide from './pages/SetupGuide';
 import AdminTeamManagement from './pages/AdminTeamManagement';
+import AdminQualificationManagement from './pages/AdminQualificationManagement';
 import AptitudeRoundExam from './pages/AptitudeRoundExam';
 import Elimination from './pages/Elimination';
 import GDJudgeEvaluation from './pages/GDJudgeEvaluation';
@@ -52,6 +53,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminTeamManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/qualifications"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminQualificationManagement />
               </ProtectedRoute>
             }
           />

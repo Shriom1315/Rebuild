@@ -250,19 +250,10 @@ const AdminTeamManagement = () => {
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === item.id
-                ? 'bg-brand text-white shadow-glow-brand ring-1 ring-white/10'
-                : 'text-white/40 hover:text-white/70 hover:bg-white/5'
-                }`}
-            >
-              <span className="material-symbols-outlined text-base">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
+          <div className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-brand text-white shadow-glow-brand ring-1 ring-white/10">
+            <span className="material-symbols-outlined text-base">groups</span>
+            Teams
+          </div>
 
           <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
             <Link to="/admin/questions" className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
@@ -300,6 +291,23 @@ const AdminTeamManagement = () => {
         </div>
 
         <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10 focus:outline-none">
+
+          {/* Tab Navigation */}
+          <div className="flex gap-3 bg-white/[0.04] border-2 border-white/20 rounded-[2rem] p-2">
+            {navItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === item.id
+                  ? 'bg-brand text-white shadow-glow-brand'
+                  : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                  }`}
+              >
+                <span className="material-symbols-outlined text-base">{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+          </div>
 
           {/* ════════ TEAMS TAB ════════ */}
           {activeTab === 'teams' && (
@@ -451,14 +459,30 @@ const AdminTeamManagement = () => {
                                 <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">SEB WARNINGS:</span>
                                 <input
                                   type="number"
-                                  defaultValue={round.seb_max_warnings || 3}
-                                  onChange={async (e) => {
+                                  key={`seb-${round.id}-${round.seb_max_warnings}`}
+                                  defaultValue={round.seb_max_warnings ?? 3}
+                                  min={1}
+                                  max={20}
+                                  onBlur={async (e) => {
                                     const val = parseInt(e.target.value);
-                                    if (val >= 0) {
-                                      await supabase.from('rounds').update({ seb_max_warnings: val }).eq('id', round.id);
-                                      showToast(`Warning threshold set to ${val}`);
+                                    if (!val || val < 1) return;
+                                    try {
+                                      const { error } = await supabase.from('rounds').update({ seb_max_warnings: val }).eq('id', round.id);
+                                      if (error) {
+                                        if (error.message?.includes('column')) {
+                                          showToast('Column "seb_max_warnings" not found. Run: ALTER TABLE rounds ADD COLUMN seb_max_warnings INT DEFAULT 3;', 'error');
+                                        } else {
+                                          throw error;
+                                        }
+                                      } else {
+                                        showToast(`Warning threshold saved: ${val}`);
+                                        fetchRounds(); // Re-fetch to sync the value
+                                      }
+                                    } catch (err) {
+                                      showToast(err.message, 'error');
                                     }
                                   }}
+                                  onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                                   className="w-12 bg-transparent text-[10px] font-bold text-brand outline-none border-b border-brand/20 focus:border-brand transition-all text-center"
                                 />
                               </div>
@@ -480,14 +504,19 @@ const AdminTeamManagement = () => {
                             {round.is_active ? 'STOP' : 'START'}
                           </button>
                         )}
-                        {!round.results_announced && (
+                        {!round.results_announced ? (
                           <button
                             onClick={() => handleAnnounceResults(round)}
                             className="flex items-center gap-3 px-8 py-4 bg-white text-black hover:bg-brand hover:text-white border-2 border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
                           >
-                            <span className="material-symbols-outlined text-sm">campaign</span>
-                            ANNOUNCE
+                            <span className="material-symbols-outlined text-sm">visibility</span>
+                            REVEAL SCORES
                           </button>
+                        ) : (
+                          <div className="flex items-center gap-3 px-6 py-3 bg-emerald-500/10 border-2 border-emerald-500/20 rounded-xl">
+                            <span className="material-symbols-outlined text-emerald-400 text-sm">check_circle</span>
+                            <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Scores Revealed</span>
+                          </div>
                         )}
                       </div>
                     </div>

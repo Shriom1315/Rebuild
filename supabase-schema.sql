@@ -50,11 +50,15 @@ CREATE TABLE public.team_members (
 CREATE TABLE public.rounds (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     name TEXT NOT NULL,
+    round_number INTEGER,
     type round_type NOT NULL,
     description TEXT,
     max_score INTEGER DEFAULT 100,
     duration_minutes INTEGER,
     is_active BOOLEAN DEFAULT FALSE,
+    is_completed BOOLEAN DEFAULT FALSE,
+    results_announced BOOLEAN DEFAULT FALSE,
+    seb_max_warnings INTEGER DEFAULT 3,
     start_time TIMESTAMP WITH TIME ZONE,
     end_time TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

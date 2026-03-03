@@ -70,17 +70,20 @@ const LiveLobbyMonitor = () => {
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-          <Link to="/admin/teams" className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 transition-all">
+          <Link to="/admin/teams" className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
             <span className="material-symbols-outlined text-base">groups</span>
             Teams
           </Link>
-          <Link to="/admin/questions" className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/5 transition-all">
-            <span className="material-symbols-outlined text-base">quiz</span>
-            Questions
-          </Link>
-          <div className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-brand text-white shadow-glow-brand ring-1 ring-white/10">
-            <span className="material-symbols-outlined text-base">monitor_heart</span>
-            Live Lobby
+
+          <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
+            <Link to="/admin/questions" className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
+              <span className="material-symbols-outlined text-base">quiz</span>
+              Questions
+            </Link>
+            <div className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-brand text-white shadow-glow-brand ring-1 ring-white/10">
+              <span className="material-symbols-outlined text-base">monitor_heart</span>
+              Live Lobby
+            </div>
           </div>
         </nav>
 
