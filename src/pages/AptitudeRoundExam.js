@@ -45,86 +45,86 @@ const AptitudeRoundExam = () => {
   }, [roundInfo]);
 
   useEffect(() => {
-    fetchExamData();
-  }, []);
-
-  const fetchExamData = async () => {
-    setLoading(true);
-    try {
-      // Get Round 1 (Aptitude)
-      const { data: round } = await supabase
-        .from('rounds')
-        .select('*')
-        .eq('round_number', 1)
-        .single();
-
-      if (round) {
-        setRoundInfo(round);
-        roundInfoRef.current = round;
-        if (round.duration_minutes) setTimeLeft(round.duration_minutes * 60);
-
-        // Get questions
-        const { data: qs } = await supabase
-          .from('questions')
+    const fetchExamData = async () => {
+      setLoading(true);
+      try {
+        // Get Round 1 (Aptitude)
+        const { data: round } = await supabase
+          .from('rounds')
           .select('*')
-          .eq('round_id', round.id)
-          .order('question_order', { ascending: true });
-
-        setQuestions(qs || []);
-
-        // Get existing team-round status (for violations)
-        const { data: statusData } = await supabase
-          .from('team_round_status')
-          .select('violation_count, status')
-          .eq('team_id', team.id)
-          .eq('round_id', round.id)
+          .eq('round_number', 1)
           .single();
 
-        if (statusData) {
-          setViolationCount(statusData.violation_count || 0);
-          violationCountRef.current = statusData.violation_count || 0;
-          if (statusData.status === 'eliminated') {
+        if (round) {
+          setRoundInfo(round);
+          roundInfoRef.current = round;
+          if (round.duration_minutes) setTimeLeft(round.duration_minutes * 60);
+
+          // Get questions
+          const { data: qs } = await supabase
+            .from('questions')
+            .select('*')
+            .eq('round_id', round.id)
+            .order('question_order', { ascending: true });
+
+          setQuestions(qs || []);
+
+          // Get existing team-round status (for violations)
+          const { data: statusData } = await supabase
+            .from('team_round_status')
+            .select('violation_count, status')
+            .eq('team_id', team.id)
+            .eq('round_id', round.id)
+            .single();
+
+          if (statusData) {
+            setViolationCount(statusData.violation_count || 0);
+            violationCountRef.current = statusData.violation_count || 0;
+            if (statusData.status === 'eliminated') {
+              setIsEliminated(true);
+              isEliminatedRef.current = true;
+            }
+          }
+
+          // Also check localStorage for previous elimination
+          const wasEliminated = localStorage.getItem(`eliminated_${team.id}_${round.id}`);
+          if (wasEliminated) {
             setIsEliminated(true);
             isEliminatedRef.current = true;
           }
-        }
 
-        // Also check localStorage for previous elimination
-        const wasEliminated = localStorage.getItem(`eliminated_${team.id}_${round.id}`);
-        if (wasEliminated) {
-          setIsEliminated(true);
-          isEliminatedRef.current = true;
-        }
+          // Check if already submitted — prevent re-taking
+          const { data: existingAnswers } = await supabase
+            .from('student_answers')
+            .select('question_id, selected_answer, submitted')
+            .eq('student_id', currentStudent.id)
+            .eq('round_id', round.id);
 
-        // Check if already submitted — prevent re-taking
-        const { data: existingAnswers } = await supabase
-          .from('student_answers')
-          .select('question_id, selected_answer, submitted')
-          .eq('student_id', currentStudent.id)
-          .eq('round_id', round.id);
+          if (existingAnswers && existingAnswers.length > 0) {
+            // Check if any answer has submitted=true or if there are answers at all
+            const isSubmitted = existingAnswers.some(a => a.submitted === true) || existingAnswers.length >= (qs?.length || 0);
 
-        if (existingAnswers && existingAnswers.length > 0) {
-          // Check if any answer has submitted=true or if there are answers at all
-          const isSubmitted = existingAnswers.some(a => a.submitted === true) || existingAnswers.length >= (qs?.length || 0);
+            // Check localStorage for submission flag as backup
+            const localSubmitted = localStorage.getItem(`exam_submitted_${currentStudent.id}_${round.id}`);
 
-          // Check localStorage for submission flag as backup
-          const localSubmitted = localStorage.getItem(`exam_submitted_${currentStudent.id}_${round.id}`);
+            if (isSubmitted || localSubmitted) {
+              setHasSubmitted(true);
+            }
 
-          if (isSubmitted || localSubmitted) {
-            setHasSubmitted(true);
+            const ansMap = {};
+            existingAnswers.forEach(a => ansMap[a.question_id] = a.selected_answer);
+            setAnswers(ansMap);
           }
-
-          const ansMap = {};
-          existingAnswers.forEach(a => ansMap[a.question_id] = a.selected_answer);
-          setAnswers(ansMap);
         }
+      } catch (error) {
+        console.error('Error fetching exam:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching exam:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchExamData();
+  }, [team, currentStudent]);
 
   // ═══ FULLSCREEN HELPERS ═══
   const enterFullScreen = () => {

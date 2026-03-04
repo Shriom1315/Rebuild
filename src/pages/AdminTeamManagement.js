@@ -6,7 +6,7 @@ import { ShaderAnimation } from '../components/ui/shader-animation';
 
 const AdminTeamManagement = () => {
   const navigate = useNavigate();
-  const { profile, signOut, createJudgeAccount } = useAuth();
+  const { signOut, createJudgeAccount } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('teams');
 

@@ -16,7 +16,6 @@ const AdminQualificationManagement = () => {
     type: 'score',
   });
   const [eligibleTeams, setEligibleTeams] = useState([]);
-  const [allTeams, setAllTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -33,12 +32,11 @@ const AdminQualificationManagement = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [roundsData, teamsData] = await Promise.all([
+      const [roundsData] = await Promise.all([
         roundService.getAllRounds(),
         teamService.getAllTeams(),
       ]);
       setRounds(roundsData);
-      setAllTeams(teamsData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {

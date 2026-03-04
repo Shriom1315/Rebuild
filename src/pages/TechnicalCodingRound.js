@@ -5,29 +5,27 @@ import { supabase } from '../config/supabase';
 
 const TechnicalCodingRound = () => {
   const navigate = useNavigate();
-  const { team, currentStudent, signOut } = useAuth();
+  const { signOut } = useAuth();
 
   const [timeLeft, setTimeLeft] = useState(2700); // 45 min
   const [loading, setLoading] = useState(true);
-  const [roundInfo, setRoundInfo] = useState(null);
   const [code, setCode] = useState(`class Solution:\n    def solve(self, input_str: str) -> str:\n        # Write your code here\n        return ""`);
 
   useEffect(() => {
+    const fetchRoundData = async () => {
+      try {
+        const { data } = await supabase.from('rounds').select('*').eq('round_number', 2).single();
+        if (data) {
+          if (data.duration_minutes) setTimeLeft(data.duration_minutes * 60);
+        }
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+
     fetchRoundData();
     const timer = setInterval(() => setTimeLeft(prev => Math.max(0, prev - 1)), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  const fetchRoundData = async () => {
-    try {
-      const { data } = await supabase.from('rounds').select('*').eq('round_number', 2).single();
-      if (data) {
-        setRoundInfo(data);
-        if (data.duration_minutes) setTimeLeft(data.duration_minutes * 60);
-      }
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  };
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 

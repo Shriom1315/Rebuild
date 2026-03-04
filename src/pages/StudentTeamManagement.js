@@ -9,24 +9,24 @@ const StudentTeamManagement = () => {
   const [stats, setStats] = useState({ rank: '---', score: 0 });
 
   useEffect(() => {
+    const fetchTeamStats = async () => {
+      try {
+        const { data } = await supabase
+          .from('teams')
+          .select('total_score')
+          .eq('id', team.id)
+          .single();
+
+        if (data) {
+          setStats({ rank: '12th', score: data.total_score });
+        }
+      } catch (e) { console.error(e); }
+    };
+
     if (team) {
       fetchTeamStats();
     }
   }, [team]);
-
-  const fetchTeamStats = async () => {
-    try {
-      const { data } = await supabase
-        .from('teams')
-        .select('total_score')
-        .eq('id', team.id)
-        .single();
-
-      if (data) {
-        setStats({ rank: '12th', score: data.total_score });
-      }
-    } catch (e) { console.error(e); }
-  };
 
   const handleSignOut = async () => {
     await signOut();

@@ -420,103 +420,103 @@ const TeamMembersList = ({ teamId, currentStudentId }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadTeamData = async () => {
+      try {
+        setLoading(true);
+        
+        // Try team_members table first (new structure)
+        let { data: teamMembersData } = await supabase
+          .from('team_members')
+          .select(`
+            *,
+            profiles:user_id (
+              id,
+              full_name,
+              email,
+              role
+            )
+          `)
+          .eq('team_id', teamId);
+
+        let membersWithProfiles = [];
+
+        // If team_members table has data, use it
+        if (teamMembersData && teamMembersData.length > 0) {
+          membersWithProfiles = teamMembersData.map(tm => ({
+            id: tm.profiles.id,
+            full_name: tm.profiles.full_name,
+            email: tm.profiles.email,
+            is_captain: tm.is_captain,
+            role: tm.role || 'Member'
+          }));
+        } else {
+          // Fallback to students table (old structure)
+          const { data: studentsData } = await supabase
+            .from('students')
+            .select('*')
+            .eq('team_id', teamId)
+            .order('created_at', { ascending: true });
+
+          if (studentsData && studentsData.length > 0) {
+            membersWithProfiles = studentsData.map(s => ({
+              id: s.id,
+              full_name: s.full_name,
+              email: s.email,
+              roll_number: s.roll_number,
+              is_captain: false,
+              role: 'Member'
+            }));
+          }
+        }
+
+        setMembers(membersWithProfiles);
+
+        // Fetch individual performance for each member
+        const performancePromises = membersWithProfiles.map(async (member) => {
+          const { data: perfData } = await supabase
+            .from('individual_performance')
+            .select(`
+              *,
+              rounds (name, type, max_score)
+            `)
+            .eq('user_id', member.id)
+            .eq('team_id', teamId);
+
+          // Check if student was eliminated in any round
+          const { data: answersData } = await supabase
+            .from('student_answers')
+            .select('round_id, is_eliminated')
+            .eq('student_id', member.id)
+            .eq('is_eliminated', true);
+
+          return {
+            userId: member.id,
+            performances: perfData || [],
+            eliminatedRounds: answersData?.map(a => a.round_id) || []
+          };
+        });
+
+        const performancesArray = await Promise.all(performancePromises);
+        const performancesMap = {};
+        const eliminatedRoundsMap = {};
+        performancesArray.forEach(p => {
+          performancesMap[p.userId] = p.performances;
+          eliminatedRoundsMap[p.userId] = p.eliminatedRounds;
+        });
+
+        setMemberPerformances(performancesMap);
+        setEliminatedRounds(eliminatedRoundsMap);
+      } catch (error) {
+        console.error('Error loading team data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (teamId) {
       loadTeamData();
     }
   }, [teamId]);
-
-  const loadTeamData = async () => {
-    try {
-      setLoading(true);
-      
-      // Try team_members table first (new structure)
-      let { data: teamMembersData } = await supabase
-        .from('team_members')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            full_name,
-            email,
-            role
-          )
-        `)
-        .eq('team_id', teamId);
-
-      let membersWithProfiles = [];
-
-      // If team_members table has data, use it
-      if (teamMembersData && teamMembersData.length > 0) {
-        membersWithProfiles = teamMembersData.map(tm => ({
-          id: tm.profiles.id,
-          full_name: tm.profiles.full_name,
-          email: tm.profiles.email,
-          is_captain: tm.is_captain,
-          role: tm.role || 'Member'
-        }));
-      } else {
-        // Fallback to students table (old structure)
-        const { data: studentsData } = await supabase
-          .from('students')
-          .select('*')
-          .eq('team_id', teamId)
-          .order('created_at', { ascending: true });
-
-        if (studentsData && studentsData.length > 0) {
-          membersWithProfiles = studentsData.map(s => ({
-            id: s.id,
-            full_name: s.full_name,
-            email: s.email,
-            roll_number: s.roll_number,
-            is_captain: false,
-            role: 'Member'
-          }));
-        }
-      }
-
-      setMembers(membersWithProfiles);
-
-      // Fetch individual performance for each member
-      const performancePromises = membersWithProfiles.map(async (member) => {
-        const { data: perfData } = await supabase
-          .from('individual_performance')
-          .select(`
-            *,
-            rounds (name, type, max_score)
-          `)
-          .eq('user_id', member.id)
-          .eq('team_id', teamId);
-
-        // Check if student was eliminated in any round
-        const { data: answersData } = await supabase
-          .from('student_answers')
-          .select('round_id, is_eliminated')
-          .eq('student_id', member.id)
-          .eq('is_eliminated', true);
-
-        return {
-          userId: member.id,
-          performances: perfData || [],
-          eliminatedRounds: answersData?.map(a => a.round_id) || []
-        };
-      });
-
-      const performancesArray = await Promise.all(performancePromises);
-      const performancesMap = {};
-      const eliminatedRoundsMap = {};
-      performancesArray.forEach(p => {
-        performancesMap[p.userId] = p.performances;
-        eliminatedRoundsMap[p.userId] = p.eliminatedRounds;
-      });
-
-      setMemberPerformances(performancesMap);
-      setEliminatedRounds(eliminatedRoundsMap);
-    } catch (error) {
-      console.error('Error loading team data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getTotalScore = (userId) => {
     const perfs = memberPerformances[userId] || [];
