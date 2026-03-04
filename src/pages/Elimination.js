@@ -5,35 +5,35 @@ import { supabase } from '../config/supabase';
 
 const Elimination = () => {
   const navigate = useNavigate();
-  const { team, currentStudent, signOut } = useAuth();
+  const { team, signOut } = useAuth();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStatus();
-  }, []);
+    const fetchStatus = async () => {
+      setLoading(true);
+      try {
+        const { data: statusData } = await supabase
+          .from('team_round_status')
+          .select(`*, rounds(name, round_number)`)
+          .eq('team_id', team.id)
+          .eq('announced', true)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .single();
 
-  const fetchStatus = async () => {
-    setLoading(true);
-    try {
-      const { data: statusData } = await supabase
-        .from('team_round_status')
-        .select(`*, rounds(name, round_number)`)
-        .eq('team_id', team.id)
-        .eq('announced', true)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (statusData) {
-        setStatus(statusData);
+        if (statusData) {
+          setStatus(statusData);
+        }
+      } catch (error) {
+        console.error('Error fetching elimination status:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching elimination status:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchStatus();
+  }, [team]);
 
   const handleSignOut = async () => {
     await signOut();

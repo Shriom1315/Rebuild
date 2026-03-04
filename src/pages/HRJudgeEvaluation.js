@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
 
 const HRJudgeEvaluation = () => {
-  const navigate = useNavigate();
   const { profile, signOut } = useAuth();
 
   const [teams, setTeams] = useState([]);

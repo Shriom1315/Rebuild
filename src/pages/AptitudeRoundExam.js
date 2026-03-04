@@ -5,7 +5,7 @@ import { supabase } from '../config/supabase';
 
 const AptitudeRoundExam = () => {
   const navigate = useNavigate();
-  const { team, currentStudent, signOut } = useAuth();
+  const { team, currentStudent } = useAuth();
 
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
