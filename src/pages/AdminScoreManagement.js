@@ -29,6 +29,30 @@ const AdminScoreManagement = () => {
   const [showCsvUpload, setShowCsvUpload] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
 
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const { data: roundsData } = await supabase
+        .from('rounds')
+        .select('*')
+        .order('round_number', { ascending: true });
+      
+      setRounds(roundsData || []);
+      if (roundsData && roundsData.length > 0) {
+        setSelectedRound(roundsData[0]);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadData();
   }, []);
@@ -627,9 +651,9 @@ const AdminScoreManagement = () => {
                 <div>
                   <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">CSV Format</label>
                   <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 font-mono text-xs text-white/80">
-                    <div className="text-emerald-400 mb-2">// Expected CSV format (with or without header):</div>
+                    <div className="text-emerald-400 mb-2">{'// Expected CSV format (with or without header):'}</div>
                     <div>email_or_roll_number, score</div>
-                    <div className="text-white/40 mt-2">// Example:</div>
+                    <div className="text-white/40 mt-2">{'// Example:'}</div>
                     <div>student@example.com, 85</div>
                     <div>ROLL001, 92</div>
                     <div>student2@example.com, 78</div>

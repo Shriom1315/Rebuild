@@ -331,9 +331,9 @@ const GDJudgeEvaluation = () => {
                   <div>
                     <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">CSV Format</label>
                     <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 font-mono text-xs text-white/80">
-                      <div className="text-emerald-400 mb-2">// Expected format (3 teams combined):</div>
+                      <div className="text-emerald-400 mb-2">{'// Expected format (3 teams combined):'}</div>
                       <div>team_name, student_email_or_roll, score</div>
-                      <div className="text-white/40 mt-2">// Example:</div>
+                      <div className="text-white/40 mt-2">{'// Example:'}</div>
                       <div>Team Alpha, student1@example.com, 35</div>
                       <div>Team Alpha, student2@example.com, 38</div>
                       <div>Team Beta, ROLL001, 32</div>
