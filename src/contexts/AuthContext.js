@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }) => {
   // Create judge account (admin only)
   const createJudgeAccount = async (email, password, fullName, role) => {
     try {
-      // Use Supabase Auth admin invite or signUp
+      // Use Supabase Auth signUp with email confirmation disabled
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -155,9 +155,42 @@ export const AuthProvider = ({ children }) => {
             full_name: fullName,
             role: role, // 'judge_gd' or 'judge_hr'
           },
+          emailRedirectTo: window.location.origin,
         },
       });
+      
       if (error) throw error;
+
+      // If user was created, ensure profile exists
+      if (data?.user) {
+        // Wait a moment for trigger to execute
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Check if profile exists, if not create it manually
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', data.user.id)
+          .single();
+
+        if (!existingProfile) {
+          // Create profile manually as fallback
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([{
+              id: data.user.id,
+              email: email,
+              full_name: fullName,
+              role: role,
+            }]);
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+            // Don't throw error, profile might be created by trigger
+          }
+        }
+      }
+
       return { data, error: null };
     } catch (error) {
       return { data: null, error };

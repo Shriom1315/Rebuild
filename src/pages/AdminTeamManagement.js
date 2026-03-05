@@ -33,6 +33,12 @@ const AdminTeamManagement = () => {
   const [judgePassword, setJudgePassword] = useState('');
   const [judgeRole, setJudgeRole] = useState('judge_gd');
 
+  // CSV Upload state
+  const [showCsvUpload, setShowCsvUpload] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvPreview, setCsvPreview] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(null);
+
   // Rounds state
   const [rounds, setRounds] = useState([]);
 
@@ -254,6 +260,181 @@ const AdminTeamManagement = () => {
     navigate('/');
   };
 
+  const handleCsvFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setCsvFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      const preview = lines.slice(0, 10).map((line, idx) => {
+        const parts = line.split(',').map(p => p.trim());
+        return {
+          line: idx + 1,
+          raw: line,
+          parsed: parts
+        };
+      });
+      
+      setCsvPreview(preview);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleUploadCsv = async () => {
+    if (!csvFile) return;
+
+    try {
+      setActionLoading(true);
+      setUploadProgress('Reading CSV file...');
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const text = event.target.result;
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        setUploadProgress(`Processing ${lines.length} rows...`);
+
+        const teamsMap = new Map();
+        let headerSkipped = false;
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+
+          const parts = line.split(',').map(p => p.trim());
+          
+          if (!headerSkipped && (parts[0] === 'Event' || parts[1] === 'Team Name')) {
+            headerSkipped = true;
+            continue;
+          }
+
+          if (parts.length < 5) {
+            continue;
+          }
+
+          const teamName = parts[1];
+          const role = parts[2];
+          const studentName = parts[3];
+          const studentEmail = parts[4];
+
+          if (!teamName || !studentName || !studentEmail) {
+            continue;
+          }
+
+          if (!teamsMap.has(teamName)) {
+            teamsMap.set(teamName, {
+              teamName,
+              teamLeader: null,
+              members: []
+            });
+          }
+
+          const teamData = teamsMap.get(teamName);
+          const studentData = {
+            name: studentName,
+            email: studentEmail,
+            role: role
+          };
+
+          if (role === 'Team Leader') {
+            teamData.teamLeader = studentData;
+          } else {
+            teamData.members.push(studentData);
+          }
+        }
+
+        setUploadProgress(`Creating ${teamsMap.size} teams...`);
+
+        let teamsCreated = 0;
+        let studentsCreated = 0;
+        let errors = [];
+
+        for (const [teamName, teamData] of teamsMap) {
+          try {
+            const teamCode = `RB-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+            
+            const { data: teamRecord, error: teamError } = await supabase
+              .from('teams')
+              .insert([{ 
+                team_name: teamName, 
+                team_code: teamCode,
+                status: 'active'
+              }])
+              .select()
+              .single();
+
+            if (teamError) {
+              errors.push(`Team "${teamName}": ${teamError.message}`);
+              continue;
+            }
+
+            teamsCreated++;
+
+            const allStudents = [];
+            if (teamData.teamLeader) {
+              allStudents.push({
+                team_id: teamRecord.id,
+                full_name: teamData.teamLeader.name,
+                email: teamData.teamLeader.email,
+                roll_number: `TL-${teamRecord.team_code}`
+              });
+            }
+
+            teamData.members.forEach((member, idx) => {
+              allStudents.push({
+                team_id: teamRecord.id,
+                full_name: member.name,
+                email: member.email,
+                roll_number: `${teamRecord.team_code}-M${idx + 1}`
+              });
+            });
+
+            if (allStudents.length > 0) {
+              const { error: studentsError } = await supabase
+                .from('students')
+                .insert(allStudents);
+
+              if (studentsError) {
+                errors.push(`Students for "${teamName}": ${studentsError.message}`);
+              } else {
+                studentsCreated += allStudents.length;
+              }
+            }
+          } catch (error) {
+            errors.push(`Team "${teamName}": ${error.message}`);
+          }
+        }
+
+        if (errors.length > 0) {
+          console.error('CSV Upload Errors:', errors);
+          showToast(`Imported ${teamsCreated} teams, ${studentsCreated} students. ${errors.length} errors occurred.`, 'error');
+        } else {
+          showToast(`Successfully imported ${teamsCreated} teams and ${studentsCreated} students!`);
+        }
+        
+        setCsvFile(null);
+        setCsvPreview([]);
+        setShowCsvUpload(false);
+        setUploadProgress(null);
+        
+        await fetchTeams();
+      };
+
+      reader.readAsText(csvFile);
+    } catch (error) {
+      console.error('Error uploading CSV:', error);
+      showToast(error.message, 'error');
+      setUploadProgress(null);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const navItems = [
     { id: 'teams', icon: 'groups', label: 'Teams' },
     { id: 'rounds', icon: 'timer', label: 'Rounds' },
@@ -371,13 +552,22 @@ const AdminTeamManagement = () => {
                   <h2 className="text-3xl md:text-4xl font-display text-white uppercase tracking-wider mb-2 leading-tight">Unit Management</h2>
                   <p className="text-xs text-white/60 font-medium tracking-wide max-w-xl">Configure and deploy simulation squads into the operational environment.</p>
                 </div>
-                <button
-                  onClick={() => { setShowCreateTeam(true); generateCode(); }}
-                  className="flex items-center justify-center gap-3 px-8 py-4 bg-brand hover:shadow-glow-brand text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all"
-                >
-                  <span className="material-symbols-outlined text-sm">add_circle</span>
-                  Initialize New Unit
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowCsvUpload(true)}
+                    className="flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all shadow-lg"
+                  >
+                    <span className="material-symbols-outlined text-sm">upload_file</span>
+                    Bulk Import CSV
+                  </button>
+                  <button
+                    onClick={() => { setShowCreateTeam(true); generateCode(); }}
+                    className="flex items-center justify-center gap-3 px-8 py-4 bg-brand hover:shadow-glow-brand text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all"
+                  >
+                    <span className="material-symbols-outlined text-sm">add_circle</span>
+                    Initialize New Unit
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -749,6 +939,119 @@ const AdminTeamManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showCsvUpload && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-fadeIn overflow-y-auto">
+          <div className="bg-[#0a0a0a] border-2 border-orange-500/40 rounded-[2.5rem] p-8 md:p-10 w-full max-w-4xl shadow-2xl animate-scaleIn my-8">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="material-symbols-outlined text-orange-500 text-3xl">upload_file</span>
+              <div>
+                <h3 className="font-display text-xl text-white uppercase tracking-widest">Bulk Import Teams & Students</h3>
+                <p className="text-xs text-white/60 mt-1">Upload CSV file with team and student data</p>
+              </div>
+            </div>
+
+            <div className="bg-white/5 border border-white/20 rounded-xl p-6 space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">CSV Format (Comma-Separated)</label>
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 font-mono text-xs text-white/80 overflow-x-auto">
+                  <div className="text-emerald-400 mb-2">{'// Expected format (comma-separated columns):'}</div>
+                  <div className="whitespace-nowrap">Event, Team Name, Role, Name, Email</div>
+                  <div className="text-white/40 mt-2">{'// Example:'}</div>
+                  <div className="whitespace-nowrap">REBUILD : The Simulation, Code Commandos, Team Leader, John Doe, john@example.com</div>
+                  <div className="whitespace-nowrap">REBUILD : The Simulation, Code Commandos, Member, Jane Smith, jane@example.com</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">Select CSV File</label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCsvFileChange}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-brand file:text-white file:font-bold file:text-xs file:uppercase file:tracking-wider hover:file:bg-blue-600 file:cursor-pointer"
+                />
+              </div>
+
+              {csvPreview.length > 0 && (
+                <div>
+                  <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">Preview (First 10 rows)</label>
+                  <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 max-h-64 overflow-auto">
+                    <table className="w-full text-xs font-mono">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left py-2 text-white/40 px-2">Line</th>
+                          <th className="text-left py-2 text-white/40 px-2">Event</th>
+                          <th className="text-left py-2 text-white/40 px-2">Team</th>
+                          <th className="text-left py-2 text-white/40 px-2">Role</th>
+                          <th className="text-left py-2 text-white/40 px-2">Name</th>
+                          <th className="text-left py-2 text-white/40 px-2">Email</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {csvPreview.map((row) => (
+                          <tr key={row.line} className="border-b border-white/5">
+                            <td className="py-2 text-white/40 px-2">{row.line}</td>
+                            <td className="py-2 text-white/60 px-2 truncate max-w-[100px]">{row.parsed[0]}</td>
+                            <td className="py-2 text-white px-2">{row.parsed[1]}</td>
+                            <td className="py-2 text-emerald-400 px-2">{row.parsed[2]}</td>
+                            <td className="py-2 text-white px-2">{row.parsed[3]}</td>
+                            <td className="py-2 text-blue-400 px-2">{row.parsed[4]}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {uploadProgress && (
+                <div className="flex items-center gap-3 px-4 py-3 bg-brand/10 border border-brand/30 rounded-lg">
+                  <div className="w-5 h-5 border-2 border-brand/20 border-t-brand rounded-full animate-spin"></div>
+                  <span className="text-sm text-brand font-bold">{uploadProgress}</span>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleUploadCsv}
+                  disabled={!csvFile || actionLoading}
+                  className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  {actionLoading ? 'Processing...' : 'Upload & Import'}
+                </button>
+                <button
+                  onClick={() => {
+                    setCsvFile(null);
+                    setCsvPreview([]);
+                    setShowCsvUpload(false);
+                  }}
+                  className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mt-6">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-blue-400 text-lg">info</span>
+                <div className="text-xs text-blue-400/90 space-y-1">
+                  <p className="font-bold">Important Notes:</p>
+                  <ul className="list-disc list-inside space-y-1 text-blue-400/70">
+                    <li>CSV must be comma-separated (standard CSV format)</li>
+                    <li>Columns: Event, Team Name, Role, Name, Email</li>
+                    <li>Role should be either "Team Leader" or "Member"</li>
+                    <li>Header row will be automatically detected and skipped</li>
+                    <li>Teams will be created automatically with generated codes</li>
+                    <li>Roll numbers will be auto-generated based on team code</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

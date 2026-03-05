@@ -21,6 +21,12 @@ const HRJudgeEvaluation = () => {
   const [csvPreview, setCsvPreview] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(null);
 
+  // Calculate qualified teams state
+  const [showCalculateModal, setShowCalculateModal] = useState(false);
+  const [topNTeams, setTopNTeams] = useState(5);
+  const [minTeamScore, setMinTeamScore] = useState(30);
+  const [calculating, setCalculating] = useState(false);
+
   const criteriaList = [
     { id: 'attitude', label: 'Attitude & Mindset' },
     { id: 'problem_solving', label: 'Problem Solving' },
@@ -242,6 +248,140 @@ const HRJudgeEvaluation = () => {
     }
   };
 
+  const handleCalculateQualifiedTeams = async () => {
+    if (!window.confirm(`Calculate and select top ${topNTeams} teams with minimum average score of ${minTeamScore} as WINNERS?`)) {
+      return;
+    }
+
+    try {
+      setCalculating(true);
+      setUploadProgress('Calculating team scores...');
+
+      // Get Round 4 (HR) ID
+      const { data: roundData } = await supabase
+        .from('rounds')
+        .select('id')
+        .eq('round_number', 4)
+        .single();
+
+      if (!roundData) {
+        alert('HR Round not found in database');
+        return;
+      }
+
+      // Get all teams with their students
+      const { data: allTeams } = await supabase
+        .from('teams')
+        .select(`
+          id,
+          team_name,
+          team_code,
+          students (
+            id,
+            full_name
+          )
+        `)
+        .order('team_name', { ascending: true });
+
+      if (!allTeams || allTeams.length === 0) {
+        alert('No teams found');
+        return;
+      }
+
+      setUploadProgress('Fetching student scores...');
+
+      // Get all student scores for Round 4
+      const { data: allScores } = await supabase
+        .from('student_scores')
+        .select('student_id, score')
+        .eq('round_id', roundData.id);
+
+      const scoresMap = {};
+      allScores?.forEach(s => {
+        scoresMap[s.student_id] = s.score;
+      });
+
+      setUploadProgress('Calculating team averages...');
+
+      // Calculate team average scores
+      const teamScores = allTeams.map(team => {
+        const teamStudents = team.students || [];
+        const studentScores = teamStudents
+          .map(s => scoresMap[s.id])
+          .filter(score => score !== undefined && score !== null);
+
+        const totalScore = studentScores.reduce((sum, score) => sum + score, 0);
+        const avgScore = studentScores.length > 0 ? totalScore / studentScores.length : 0;
+
+        return {
+          team_id: team.id,
+          team_name: team.team_name,
+          team_code: team.team_code,
+          member_count: teamStudents.length,
+          scored_count: studentScores.length,
+          avg_score: parseFloat(avgScore.toFixed(2))
+        };
+      });
+
+      // Sort by average score (descending)
+      teamScores.sort((a, b) => b.avg_score - a.avg_score);
+
+      setUploadProgress('Updating team rankings...');
+
+      // Delete existing team_round_status for Round 4
+      await supabase
+        .from('team_round_status')
+        .delete()
+        .eq('round_id', roundData.id);
+
+      // Mark top N teams as winners
+      const qualificationRecords = [];
+      let winnerCount = 0;
+
+      for (let i = 0; i < teamScores.length; i++) {
+        const team = teamScores[i];
+        const isWinner = i < topNTeams && team.avg_score >= minTeamScore;
+
+        qualificationRecords.push({
+          team_id: team.team_id,
+          round_id: roundData.id,
+          status: isWinner ? 'winner' : 'eliminated',
+          message: isWinner 
+            ? `🏆 WINNER - Rank ${i + 1} with average score ${team.avg_score}`
+            : `Rank ${i + 1}, Average score ${team.avg_score}`
+        });
+
+        if (isWinner) {
+          winnerCount++;
+          // Update team status to winner
+          await supabase
+            .from('teams')
+            .update({ status: 'winner' })
+            .eq('id', team.team_id);
+        }
+      }
+
+      // Insert qualification records
+      const { error: insertError } = await supabase
+        .from('team_round_status')
+        .insert(qualificationRecords);
+
+      if (insertError) throw insertError;
+
+      alert(`🏆 Successfully selected ${winnerCount} WINNING teams!\n\nTop 3 Teams:\n${teamScores.slice(0, 3).map((t, i) => `${i + 1}. ${t.team_name} - ${t.avg_score}`).join('\n')}`);
+      
+      setShowCalculateModal(false);
+      setUploadProgress(null);
+      await fetchTeams();
+    } catch (error) {
+      console.error('Error calculating winners:', error);
+      alert('Error: ' + error.message);
+      setUploadProgress(null);
+    } finally {
+      setCalculating(false);
+    }
+  };
+
   if (loading && teams.length === 0) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-brand/30 border-t-brand rounded-full animate-spin"></div>
@@ -278,6 +418,13 @@ const HRJudgeEvaluation = () => {
           >
             <span className="material-symbols-outlined text-sm">upload_file</span>
             {showCsvUpload ? 'Hide CSV Upload' : 'Upload CSV Scores'}
+          </button>
+          <button 
+            onClick={() => setShowCalculateModal(true)}
+            className="w-full py-3 mb-2 text-xs text-white/60 hover:text-yellow-400 hover:bg-yellow-500/10 rounded-xl transition-all flex items-center justify-center gap-2 border border-white/5"
+          >
+            <span className="material-symbols-outlined text-sm">emoji_events</span>
+            Select Winners
           </button>
           <button onClick={() => signOut()} className="w-full py-3 text-xs text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all flex items-center justify-center gap-2">
             <span className="material-symbols-outlined text-sm">logout</span>
@@ -492,6 +639,90 @@ const HRJudgeEvaluation = () => {
           </>
         )}
       </main>
+
+      {/* Select Winners Modal */}
+      {showCalculateModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-fadeIn">
+          <div className="bg-[#0a0a0a] border-2 border-yellow-500/40 rounded-[2.5rem] p-8 md:p-10 w-full max-w-md shadow-2xl animate-scaleIn">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="material-symbols-outlined text-yellow-500 text-3xl">emoji_events</span>
+              <div>
+                <h3 className="font-display text-xl text-white uppercase tracking-widest">Select Winners</h3>
+                <p className="text-xs text-white/60 mt-1">Determine final competition winners</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">Top N Teams as Winners</label>
+                <input
+                  type="number"
+                  value={topNTeams}
+                  onChange={(e) => setTopNTeams(parseInt(e.target.value) || 0)}
+                  min="1"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">Minimum Average Score</label>
+                <input
+                  type="number"
+                  value={minTeamScore}
+                  onChange={(e) => setMinTeamScore(parseFloat(e.target.value) || 0)}
+                  min="0"
+                  max="40"
+                  step="0.5"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-mono"
+                />
+                <p className="text-[9px] text-white/40 mt-2 uppercase tracking-wider">Teams below this score will not be selected as winners</p>
+              </div>
+
+              {uploadProgress && (
+                <div className="flex items-center gap-3 px-4 py-3 bg-brand/10 border border-brand/30 rounded-lg">
+                  <div className="w-5 h-5 border-2 border-brand/20 border-t-brand rounded-full animate-spin"></div>
+                  <span className="text-sm text-brand font-bold">{uploadProgress}</span>
+                </div>
+              )}
+
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-yellow-400 text-lg">info</span>
+                  <div className="text-xs text-yellow-400/90 space-y-1">
+                    <p className="font-bold">How it works:</p>
+                    <ul className="list-disc list-inside space-y-1 text-yellow-400/70">
+                      <li>Calculates average score for each team</li>
+                      <li>Ranks teams by average score</li>
+                      <li>Selects top N teams with minimum score as WINNERS</li>
+                      <li>Updates team status to "winner"</li>
+                      <li>This is the FINAL round - winners announced!</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleCalculateQualifiedTeams}
+                  disabled={calculating}
+                  className="flex-1 py-4 bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-500/50 text-black font-black rounded-xl text-[10px] uppercase tracking-widest transition-all"
+                >
+                  {calculating ? 'Calculating...' : '🏆 Select Winners'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCalculateModal(false);
+                    setUploadProgress(null);
+                  }}
+                  className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

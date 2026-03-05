@@ -21,6 +21,12 @@ const GDJudgeEvaluation = () => {
   const [csvPreview, setCsvPreview] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(null);
 
+  // Calculate qualified teams state
+  const [showCalculateModal, setShowCalculateModal] = useState(false);
+  const [topNTeams, setTopNTeams] = useState(10);
+  const [minTeamScore, setMinTeamScore] = useState(30);
+  const [calculating, setCalculating] = useState(false);
+
   const criteriaList = [
     { id: 'communication', label: 'Communication' },
     { id: 'confidence', label: 'Confidence' },
@@ -153,7 +159,7 @@ const GDJudgeEvaluation = () => {
         
         setUploadProgress(`Processing ${lines.length} rows...`);
 
-        // Expected format: team_name, student_email/roll, score
+        // Expected format: student_email/roll, score
         const scores = [];
         let headerSkipped = false;
 
@@ -164,24 +170,23 @@ const GDJudgeEvaluation = () => {
           const parts = line.split(',').map(p => p.trim());
           
           // Skip header
-          if (!headerSkipped && (parts[2] === 'score' || parts[2] === 'Score' || isNaN(parseFloat(parts[2])))) {
+          if (!headerSkipped && (parts[1] === 'score' || parts[1] === 'Score' || isNaN(parseFloat(parts[1])))) {
             headerSkipped = true;
             continue;
           }
 
-          if (parts.length < 3) {
+          if (parts.length < 2) {
             continue;
           }
 
-          const teamName = parts[0];
-          const identifier = parts[1]; // email or roll_number
-          const score = parseFloat(parts[2]);
+          const identifier = parts[0]; // email or roll_number
+          const score = parseFloat(parts[1]);
 
           if (isNaN(score)) {
             continue;
           }
 
-          scores.push({ teamName, identifier, score });
+          scores.push({ identifier, score });
         }
 
         setUploadProgress(`Mapping ${scores.length} students...`);
@@ -265,6 +270,146 @@ const GDJudgeEvaluation = () => {
     }
   };
 
+  const handleCalculateQualifiedTeams = async () => {
+    if (!window.confirm(`Calculate and qualify top ${topNTeams} teams with minimum average score of ${minTeamScore}?`)) {
+      return;
+    }
+
+    try {
+      setCalculating(true);
+      setUploadProgress('Calculating team scores...');
+
+      // Get Round 3 (GD) ID
+      const { data: roundData } = await supabase
+        .from('rounds')
+        .select('id')
+        .eq('round_number', 3)
+        .single();
+
+      if (!roundData) {
+        alert('GD Round not found in database');
+        return;
+      }
+
+      // Get all teams with their students
+      const { data: allTeams } = await supabase
+        .from('teams')
+        .select(`
+          id,
+          team_name,
+          team_code,
+          students (
+            id,
+            full_name
+          )
+        `)
+        .order('team_name', { ascending: true });
+
+      if (!allTeams || allTeams.length === 0) {
+        alert('No teams found');
+        return;
+      }
+
+      setUploadProgress('Fetching student scores...');
+
+      // Get all student scores for Round 3
+      const { data: allScores } = await supabase
+        .from('student_scores')
+        .select('student_id, score')
+        .eq('round_id', roundData.id);
+
+      const scoresMap = {};
+      allScores?.forEach(s => {
+        scoresMap[s.student_id] = s.score;
+      });
+
+      setUploadProgress('Calculating team averages...');
+
+      // Calculate team average scores
+      const teamScores = allTeams.map(team => {
+        const teamStudents = team.students || [];
+        const studentScores = teamStudents
+          .map(s => scoresMap[s.id])
+          .filter(score => score !== undefined && score !== null);
+
+        const totalScore = studentScores.reduce((sum, score) => sum + score, 0);
+        const avgScore = studentScores.length > 0 ? totalScore / studentScores.length : 0;
+
+        return {
+          team_id: team.id,
+          team_name: team.team_name,
+          team_code: team.team_code,
+          member_count: teamStudents.length,
+          scored_count: studentScores.length,
+          avg_score: parseFloat(avgScore.toFixed(2))
+        };
+      });
+
+      // Sort by average score (descending)
+      teamScores.sort((a, b) => b.avg_score - a.avg_score);
+
+      setUploadProgress('Updating team qualifications...');
+
+      // Delete existing team_round_status for Round 3
+      await supabase
+        .from('team_round_status')
+        .delete()
+        .eq('round_id', roundData.id);
+
+      // Qualify top N teams with minimum score
+      const qualificationRecords = [];
+      let qualifiedCount = 0;
+
+      for (let i = 0; i < teamScores.length; i++) {
+        const team = teamScores[i];
+        const isQualified = i < topNTeams && team.avg_score >= minTeamScore;
+
+        qualificationRecords.push({
+          team_id: team.team_id,
+          round_id: roundData.id,
+          status: isQualified ? 'qualified' : 'eliminated',
+          message: isQualified 
+            ? `Qualified with average score ${team.avg_score} (Rank ${i + 1})`
+            : `Not qualified - Rank ${i + 1}, Average score ${team.avg_score}`
+        });
+
+        if (isQualified) {
+          qualifiedCount++;
+          // Update team status to qualified
+          await supabase
+            .from('teams')
+            .update({ status: 'qualified' })
+            .eq('id', team.team_id);
+        } else {
+          // Update team status to eliminated
+          await supabase
+            .from('teams')
+            .update({ status: 'eliminated' })
+            .eq('id', team.team_id);
+        }
+      }
+
+      // Insert qualification records
+      const { error: insertError } = await supabase
+        .from('team_round_status')
+        .insert(qualificationRecords);
+
+      if (insertError) throw insertError;
+
+      alert(`Successfully qualified ${qualifiedCount} teams for the next round!\n\nTop 3 Teams:\n${teamScores.slice(0, 3).map((t, i) => `${i + 1}. ${t.team_name} - ${t.avg_score}`).join('\n')}`);
+      
+      setShowCalculateModal(false);
+      setUploadProgress(null);
+      await fetchTeams();
+    } catch (error) {
+      console.error('Error calculating qualified teams:', error);
+      alert('Error: ' + error.message);
+      setUploadProgress(null);
+    } finally {
+      setCalculating(false);
+    }
+  };
+
   if (loading && teams.length === 0) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-brand/30 border-t-brand rounded-full animate-spin"></div>
@@ -306,6 +451,13 @@ const GDJudgeEvaluation = () => {
             <span className="material-symbols-outlined text-sm">upload_file</span>
             {showCsvUpload ? 'Hide CSV Upload' : 'Upload CSV Scores'}
           </button>
+          <button 
+            onClick={() => setShowCalculateModal(true)}
+            className="w-full py-3 mb-2 text-xs text-white/60 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-xl transition-all flex items-center justify-center gap-2 border border-white/5"
+          >
+            <span className="material-symbols-outlined text-sm">calculate</span>
+            Calculate Qualified Teams
+          </button>
           <button onClick={() => signOut()} className="w-full py-3 text-xs text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all flex items-center justify-center gap-2">
             <span className="material-symbols-outlined text-sm">logout</span>
             Exit Judge Portal
@@ -331,13 +483,13 @@ const GDJudgeEvaluation = () => {
                   <div>
                     <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">CSV Format</label>
                     <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 font-mono text-xs text-white/80">
-                      <div className="text-emerald-400 mb-2">{'// Expected format (3 teams combined):'}</div>
-                      <div>team_name, student_email_or_roll, score</div>
+                      <div className="text-emerald-400 mb-2">{'// Expected format (comma-separated):'}</div>
+                      <div>student_email_or_roll, score</div>
                       <div className="text-white/40 mt-2">{'// Example:'}</div>
-                      <div>Team Alpha, student1@example.com, 35</div>
-                      <div>Team Alpha, student2@example.com, 38</div>
-                      <div>Team Beta, ROLL001, 32</div>
-                      <div>Team Beta, ROLL002, 36</div>
+                      <div>student1@example.com, 35</div>
+                      <div>ROLL001, 38</div>
+                      <div>student2@example.com, 32</div>
+                      <div className="text-white/40 mt-2">{'// Score range: 0-40'}</div>
                     </div>
                   </div>
 
@@ -359,8 +511,7 @@ const GDJudgeEvaluation = () => {
                           <thead>
                             <tr className="border-b border-white/10">
                               <th className="text-left py-2 text-white/40">Line</th>
-                              <th className="text-left py-2 text-white/40">Team</th>
-                              <th className="text-left py-2 text-white/40">Student</th>
+                              <th className="text-left py-2 text-white/40">Student Email/Roll</th>
                               <th className="text-left py-2 text-white/40">Score</th>
                             </tr>
                           </thead>
@@ -369,8 +520,7 @@ const GDJudgeEvaluation = () => {
                               <tr key={row.line} className="border-b border-white/5">
                                 <td className="py-2 text-white/40">{row.line}</td>
                                 <td className="py-2 text-white">{row.parsed[0]}</td>
-                                <td className="py-2 text-white">{row.parsed[1]}</td>
-                                <td className="py-2 text-emerald-400">{row.parsed[2]}</td>
+                                <td className="py-2 text-emerald-400">{row.parsed[1]}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -413,11 +563,11 @@ const GDJudgeEvaluation = () => {
                     <div className="text-xs text-blue-400/90 space-y-1">
                       <p className="font-bold">Important Notes:</p>
                       <ul className="list-disc list-inside space-y-1 text-blue-400/70">
-                        <li>CSV can contain multiple teams (3 teams combined)</li>
-                        <li>Each row: team_name, student_email/roll, score (0-40)</li>
+                        <li>CSV format: student_email/roll, score (0-40)</li>
                         <li>Header row will be automatically detected and skipped</li>
                         <li>Students not found in database will be skipped</li>
                         <li>Team scores calculated as average of member scores</li>
+                        <li>After upload, click "Calculate Qualified Teams" to determine next round qualifiers</li>
                       </ul>
                     </div>
                   </div>
@@ -534,6 +684,89 @@ const GDJudgeEvaluation = () => {
           </>
         )}
       </main>
+
+      {/* Calculate Qualified Teams Modal */}
+      {showCalculateModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-fadeIn">
+          <div className="bg-[#0a0a0a] border-2 border-emerald-500/40 rounded-[2.5rem] p-8 md:p-10 w-full max-w-md shadow-2xl animate-scaleIn">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="material-symbols-outlined text-emerald-500 text-3xl">calculate</span>
+              <div>
+                <h3 className="font-display text-xl text-white uppercase tracking-widest">Calculate Qualified Teams</h3>
+                <p className="text-xs text-white/60 mt-1">Determine teams for next round</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">Top N Teams to Qualify</label>
+                <input
+                  type="number"
+                  value={topNTeams}
+                  onChange={(e) => setTopNTeams(parseInt(e.target.value) || 0)}
+                  min="1"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">Minimum Average Score</label>
+                <input
+                  type="number"
+                  value={minTeamScore}
+                  onChange={(e) => setMinTeamScore(parseFloat(e.target.value) || 0)}
+                  min="0"
+                  max="40"
+                  step="0.5"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-mono"
+                />
+                <p className="text-[9px] text-white/40 mt-2 uppercase tracking-wider">Teams below this score will be eliminated</p>
+              </div>
+
+              {uploadProgress && (
+                <div className="flex items-center gap-3 px-4 py-3 bg-brand/10 border border-brand/30 rounded-lg">
+                  <div className="w-5 h-5 border-2 border-brand/20 border-t-brand rounded-full animate-spin"></div>
+                  <span className="text-sm text-brand font-bold">{uploadProgress}</span>
+                </div>
+              )}
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-blue-400 text-lg">info</span>
+                  <div className="text-xs text-blue-400/90 space-y-1">
+                    <p className="font-bold">How it works:</p>
+                    <ul className="list-disc list-inside space-y-1 text-blue-400/70">
+                      <li>Calculates average score for each team</li>
+                      <li>Ranks teams by average score</li>
+                      <li>Qualifies top N teams with minimum score</li>
+                      <li>Updates team status and round qualifications</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleCalculateQualifiedTeams}
+                  disabled={calculating}
+                  className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  {calculating ? 'Calculating...' : 'Calculate & Qualify'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCalculateModal(false);
+                    setUploadProgress(null);
+                  }}
+                  className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
