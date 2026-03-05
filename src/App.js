@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import SetupGuide from './pages/SetupGuide';
 import AdminTeamManagement from './pages/AdminTeamManagement';
 import AdminQualificationManagement from './pages/AdminQualificationManagement';
+import AdminScoreManagement from './pages/AdminScoreManagement';
 import AptitudeRoundExam from './pages/AptitudeRoundExam';
 import Elimination from './pages/Elimination';
 import GDJudgeEvaluation from './pages/GDJudgeEvaluation';
@@ -17,7 +18,8 @@ import AdminQuestionManagement from './pages/AdminQuestionManagement';
 import RoundWinnersAnnouncement from './pages/RoundWinnersAnnouncement';
 import StudentTeamManagement from './pages/StudentTeamManagement';
 import StudentDashboard from './pages/StudentDashboard';
-import TechnicalCodingRound from './pages/TechnicalCodingRound';
+import Leaderboard from './pages/Leaderboard';
+// import TechnicalCodingRound from './pages/TechnicalCodingRound'; // Removed - scores imported via CSV
 import DemoOne from './pages/Demo';
 
 // Check if Supabase is configured
@@ -73,6 +75,14 @@ function App() {
             }
           />
           <Route
+            path="/admin/scores"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminScoreManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/questions"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
@@ -100,6 +110,14 @@ function App() {
             }
           />
           <Route
+            path="/student/leaderboard"
+            element={
+              <ProtectedRoute teamOnly>
+                <Leaderboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/student/exam/aptitude"
             element={
               <ProtectedRoute teamOnly>
@@ -107,14 +125,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/student/exam/coding"
-            element={
-              <ProtectedRoute teamOnly>
-                <TechnicalCodingRound />
-              </ProtectedRoute>
-            }
-          />
+          {/* Technical Round removed - scores imported via CSV by admin */}
           <Route
             path="/student/elimination"
             element={

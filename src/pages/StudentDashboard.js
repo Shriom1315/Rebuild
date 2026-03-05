@@ -13,6 +13,7 @@ const StudentDashboard = () => {
   const [studentScores, setStudentScores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scoreRevealed, setScoreRevealed] = useState(false);
+  const [eliminatedRounds, setEliminatedRounds] = useState({});
 
   const fetchDashboardData = useCallback(async () => {
     if (!team || !currentStudent) return;
@@ -38,6 +39,19 @@ const StudentDashboard = () => {
         .select('*, rounds(name, round_number)')
         .eq('student_id', currentStudent.id);
       setStudentScores(scoresData || []);
+
+      // Fetch elimination status for current student
+      const { data: eliminationData } = await supabase
+        .from('student_answers')
+        .select('round_id, is_eliminated')
+        .eq('student_id', currentStudent.id)
+        .eq('is_eliminated', true);
+      
+      const eliminatedRoundsMap = {};
+      if (eliminationData && eliminationData.length > 0) {
+        eliminatedRoundsMap[currentStudent.id] = eliminationData.map(e => e.round_id);
+      }
+      setEliminatedRounds(eliminatedRoundsMap);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -135,8 +149,8 @@ const StudentDashboard = () => {
   const latestAnnounced = getLatestAnnouncedRound();
   const latestStatus = latestAnnounced ? getTeamStatusForRound(latestAnnounced.id) : null;
 
-  // Check if team is eliminated based on latest results
-  const isEliminated = latestStatus?.status === 'eliminated';
+  // Check if team is eliminated in ANY round (once eliminated, always eliminated)
+  const isEliminated = teamStatus.some(s => s.status === 'eliminated');
 
   if (loading) {
     return (
@@ -189,6 +203,13 @@ const StudentDashboard = () => {
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.5)]"></span>
                 <span className="text-[8px] font-black text-emerald-400/70 uppercase tracking-widest">Live</span>
               </div>
+              <Link
+                to="/student/leaderboard"
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-brand/20 border border-white/10 hover:border-brand/30 rounded-xl transition-all"
+              >
+                <span className="material-symbols-outlined text-brand text-sm">leaderboard</span>
+                <span className="text-[10px] font-black text-white uppercase tracking-wider">Rankings</span>
+              </Link>
               <div className="hidden md:flex flex-col items-end border-r border-white/20 pr-6">
                 <span className="text-[10px] text-white/90 font-bold tracking-widest uppercase">{currentStudent?.full_name}</span>
                 <span className="text-[8px] text-brand uppercase tracking-[0.3em] font-black">{team?.team_name}</span>
@@ -277,6 +298,36 @@ const StudentDashboard = () => {
             {/* ── RIGHT COLUMN: OPERATIONS (Col-8) ── */}
             <main className="lg:col-span-8 flex flex-col gap-8">
 
+              {/* TEAM ELIMINATION BANNER */}
+              {teamStatus.some(s => s.status === 'eliminated') && (
+                <div className="relative overflow-hidden rounded-[3rem] border-2 border-red-500/50 bg-red-500/10 p-1 animate-pulse">
+                  <div className="bg-[#0a0a0a]/90 backdrop-blur-3xl rounded-[2.8rem] p-10 md:p-14">
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                      <div className="relative shrink-0">
+                        <div className="w-24 h-24 rounded-[2rem] border-4 border-red-500 bg-red-500/10 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                          <span className="material-symbols-outlined text-5xl text-red-500">dangerous</span>
+                        </div>
+                      </div>
+                      <div className="flex-1 text-center md:text-left">
+                        <h2 className="text-3xl md:text-4xl font-display text-red-500 uppercase tracking-wider mb-3">
+                          TEAM ELIMINATED
+                        </h2>
+                        <p className="text-sm text-white/70 font-medium leading-relaxed mb-4">
+                          Your team has been eliminated from the competition. Access to future rounds is restricted.
+                        </p>
+                        <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                          <div className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                            <span className="text-[10px] font-black text-red-500 uppercase tracking-wider">
+                              Competition Status: Terminated
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* CURRENT LIVE ROUND HERO */}
               {currentRound && !isEliminated ? (
                 <div className="relative group overflow-hidden rounded-[3rem] border border-brand/50 bg-brand/10 p-1">
@@ -297,9 +348,9 @@ const StudentDashboard = () => {
                       </p>
 
                       <div className="flex flex-col sm:flex-row items-center gap-5">
-                        {(currentRound.type === 'aptitude' || currentRound.type === 'technical') && (() => {
+                        {currentRound.type === 'aptitude' && (() => {
                           // Check if aptitude test already submitted
-                          const examSubmitted = currentRound.type === 'aptitude' && currentStudent &&
+                          const examSubmitted = currentStudent &&
                             localStorage.getItem(`exam_submitted_${currentStudent.id}_${currentRound.id}`);
 
                           if (examSubmitted) {
@@ -313,7 +364,7 @@ const StudentDashboard = () => {
 
                           return (
                             <Link
-                              to={currentRound.type === 'aptitude' ? '/student/exam/aptitude' : '/student/exam/coding'}
+                              to="/student/exam/aptitude"
                               className="w-full sm:w-auto px-10 py-5 bg-brand hover:bg-white hover:text-brand text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-glow-brand flex items-center justify-center gap-4 group/btn"
                             >
                               START SEQUENCE
@@ -321,6 +372,12 @@ const StudentDashboard = () => {
                             </Link>
                           );
                         })()}
+                        {currentRound.type === 'technical' && (
+                          <div className="w-full sm:w-auto px-10 py-5 bg-purple-500/10 border-2 border-purple-500/30 text-purple-400 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4">
+                            <span className="material-symbols-outlined text-sm">code</span>
+                            EXTERNAL ASSESSMENT
+                          </div>
+                        )}
                         <div className="flex items-center gap-3 px-6 py-4 bg-white/10 border border-white/20 rounded-2xl">
                           <span className="material-symbols-outlined text-brand text-sm">schedule</span>
                           <span className="text-[11px] font-mono text-white/90 uppercase font-bold">{currentRound.duration_minutes} MINS ALLOCATED</span>
@@ -351,6 +408,45 @@ const StudentDashboard = () => {
                     const isCompleted = round.is_completed;
                     const isUpcoming = !isLive && !isCompleted;
 
+                    // Check if team is eliminated for this round
+                    const isTeamEliminated = status?.status === 'eliminated';
+                    
+                    // Check if current student is eliminated for this round
+                    const isStudentEliminated = eliminatedRounds[currentStudent?.id]?.includes(round.id);
+
+                    // If eliminated, show blocked card
+                    if (isTeamEliminated || isStudentEliminated) {
+                      return (
+                        <div key={round.id} className="p-8 rounded-[2rem] border-2 bg-red-500/5 border-red-500/30 relative overflow-hidden">
+                          {/* Diagonal stripe pattern */}
+                          <div className="absolute inset-0 opacity-5" style={{
+                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(239, 68, 68, 0.5) 10px, rgba(239, 68, 68, 0.5) 20px)'
+                          }}></div>
+                          
+                          <div className="relative z-10">
+                            <div className="flex justify-between items-start mb-6">
+                              <span className="text-2xl font-display font-bold text-red-500/40">0{round.round_number}</span>
+                              <span className="material-symbols-outlined text-red-500 text-xl">block</span>
+                            </div>
+                            <h4 className="text-[11px] font-black uppercase tracking-widest mb-1 text-red-500/80">{round.name}</h4>
+                            <p className="text-[9px] text-red-500/60 font-bold uppercase tracking-widest mb-6">ELIMINATED</p>
+
+                            <div className="pt-4 border-t border-red-500/20">
+                              <div className="flex items-center gap-2 text-red-500/80">
+                                <span className="material-symbols-outlined text-sm">dangerous</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider">
+                                  {isTeamEliminated ? 'Team Eliminated' : 'You Are Eliminated'}
+                                </span>
+                              </div>
+                              <p className="text-[9px] text-white/40 mt-2">
+                                Access to this round is blocked
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
                     return (
                       <div key={round.id} className={`p-8 rounded-[2rem] border-2 transition-all duration-300 ${isLive ? 'bg-brand/10 border-brand shadow-glow-brand translate-y-[-4px]' :
                         status?.status === 'qualified' ? 'bg-emerald-500/10 border-emerald-500/40' :
@@ -366,8 +462,15 @@ const StudentDashboard = () => {
                         <div className="pt-4 border-t border-white/10 flex items-center justify-between">
                           {score && round.results_announced ? (
                             <div className="flex flex-col">
-                              <span className="text-xs font-bold text-white">{score.score}<span className="text-white/40 font-normal">/{score.max_score}</span></span>
-                              <span className="text-[8px] text-white/40 uppercase tracking-widest">RESULT</span>
+                              <span className="text-sm font-bold text-white">
+                                {score.correct_count || 0}/{score.total_questions || 0} correct
+                              </span>
+                              <span className="text-xs text-white/40">
+                                {score.wrong_count || 0} wrong • {score.percentage || 0}%
+                              </span>
+                              <span className="text-[8px] text-brand font-bold uppercase tracking-widest mt-1">
+                                {score.score} points
+                              </span>
                             </div>
                           ) : (
                             <span className="text-[8px] text-white/40 uppercase font-black tracking-widest">{isLive ? 'LIVE' : isUpcoming ? 'QUEUED' : 'DONE'}</span>
@@ -474,13 +577,12 @@ const TeamMembersList = ({ teamId, currentStudentId }) => {
         // Fetch individual performance for each member
         const performancePromises = membersWithProfiles.map(async (member) => {
           const { data: perfData } = await supabase
-            .from('individual_performance')
+            .from('student_scores')
             .select(`
               *,
-              rounds (name, type, max_score)
+              rounds!inner (name, type, round_number)
             `)
-            .eq('user_id', member.id)
-            .eq('team_id', teamId);
+            .eq('student_id', member.id);
 
           // Check if student was eliminated in any round
           const { data: answersData } = await supabase
@@ -526,7 +628,7 @@ const TeamMembersList = ({ teamId, currentStudentId }) => {
   const getAverageAccuracy = (userId) => {
     const perfs = memberPerformances[userId] || [];
     if (perfs.length === 0) return 0;
-    const totalAccuracy = perfs.reduce((sum, p) => sum + (p.metrics?.accuracy || 0), 0);
+    const totalAccuracy = perfs.reduce((sum, p) => sum + (p.percentage || 0), 0);
     return Math.round(totalAccuracy / perfs.length);
   };
 
@@ -608,6 +710,18 @@ const TeamMembersList = ({ teamId, currentStudentId }) => {
                         className="h-full bg-gradient-to-r from-brand to-emerald-500 rounded-full transition-all duration-500"
                         style={{ width: `${Math.min(avgAccuracy, 100)}%` }}
                       ></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Elimination Status */}
+                {eliminatedRounds[m.id]?.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-red-500/20">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <span className="material-symbols-outlined text-red-500 text-sm">block</span>
+                      <span className="text-xs font-bold text-red-500 uppercase tracking-wider">
+                        Eliminated from {eliminatedRounds[m.id].length} round(s)
+                      </span>
                     </div>
                   </div>
                 )}

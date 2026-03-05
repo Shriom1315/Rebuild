@@ -15,6 +15,12 @@ const HRJudgeEvaluation = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // CSV Upload state
+  const [showCsvUpload, setShowCsvUpload] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvPreview, setCsvPreview] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(null);
+
   const criteriaList = [
     { id: 'attitude', label: 'Attitude & Mindset' },
     { id: 'problem_solving', label: 'Problem Solving' },
@@ -95,6 +101,150 @@ const HRJudgeEvaluation = () => {
     finally { setSubmitting(false); }
   };
 
+  const handleCsvFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setCsvFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      const preview = lines.slice(0, 10).map((line, idx) => {
+        const parts = line.split(',').map(p => p.trim());
+        return { line: idx + 1, raw: line, parsed: parts };
+      });
+      
+      setCsvPreview(preview);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleUploadCsv = async () => {
+    if (!csvFile) return;
+
+    try {
+      setSubmitting(true);
+      setUploadProgress('Reading CSV file...');
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const text = event.target.result;
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        setUploadProgress(`Processing ${lines.length} rows...`);
+
+        const scores = [];
+        let skippedRows = 0;
+        let headerSkipped = false;
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+
+          const parts = line.split(',').map(p => p.trim());
+          
+          if (!headerSkipped && (parts[1] === 'score' || parts[1] === 'Score' || isNaN(parseFloat(parts[1])))) {
+            headerSkipped = true;
+            continue;
+          }
+
+          if (parts.length < 2) {
+            skippedRows++;
+            continue;
+          }
+
+          const identifier = parts[0];
+          const score = parseFloat(parts[1]);
+
+          if (isNaN(score)) {
+            skippedRows++;
+            continue;
+          }
+
+          scores.push({ identifier, score });
+        }
+
+        setUploadProgress(`Mapping ${scores.length} students...`);
+
+        const { data: roundData } = await supabase
+          .from('rounds')
+          .select('id')
+          .eq('round_number', 4)
+          .single();
+
+        if (!roundData) {
+          alert('HR Round not found in database');
+          return;
+        }
+
+        const studentScores = [];
+        let notFound = 0;
+
+        for (const { identifier, score } of scores) {
+          const { data: studentData } = await supabase
+            .from('students')
+            .select('id, full_name, email, roll_number')
+            .or(`email.eq.${identifier},roll_number.eq.${identifier}`)
+            .single();
+
+          if (studentData) {
+            studentScores.push({
+              student_id: studentData.id,
+              round_id: roundData.id,
+              score: score,
+              max_score: 40,
+              percentage: (score / 40) * 100,
+              evaluated_by: profile.id
+            });
+          } else {
+            notFound++;
+            console.warn(`Student not found: ${identifier}`);
+          }
+        }
+
+        if (studentScores.length === 0) {
+          alert('No matching students found');
+          return;
+        }
+
+        setUploadProgress(`Saving ${studentScores.length} scores...`);
+
+        await supabase
+          .from('student_scores')
+          .delete()
+          .eq('round_id', roundData.id);
+
+        const { error: insertError } = await supabase
+          .from('student_scores')
+          .insert(studentScores);
+
+        if (insertError) throw insertError;
+
+        alert(`Successfully imported ${studentScores.length} scores! ${notFound > 0 ? `(${notFound} not found)` : ''}`);
+        
+        setCsvFile(null);
+        setCsvPreview([]);
+        setShowCsvUpload(false);
+        setUploadProgress(null);
+        
+        if (selectedTeam) {
+          selectTeam(selectedTeam);
+        }
+      };
+
+      reader.readAsText(csvFile);
+    } catch (error) {
+      console.error('Error uploading CSV:', error);
+      alert('Error: ' + error.message);
+      setUploadProgress(null);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (loading && teams.length === 0) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-brand/30 border-t-brand rounded-full animate-spin"></div>
@@ -125,6 +275,13 @@ const HRJudgeEvaluation = () => {
         </div>
 
         <div className="p-4 border-t border-white/5">
+          <button 
+            onClick={() => setShowCsvUpload(!showCsvUpload)}
+            className="w-full py-3 mb-2 text-xs text-white/60 hover:text-orange-400 hover:bg-orange-500/10 rounded-xl transition-all flex items-center justify-center gap-2 border border-white/5"
+          >
+            <span className="material-symbols-outlined text-sm">upload_file</span>
+            {showCsvUpload ? 'Hide CSV Upload' : 'Upload CSV Scores'}
+          </button>
           <button onClick={() => signOut()} className="w-full py-3 text-xs text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all flex items-center justify-center gap-2">
             <span className="material-symbols-outlined text-sm">logout</span>
             Exit HR Portal
@@ -133,7 +290,113 @@ const HRJudgeEvaluation = () => {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        {!selectedTeam ? (
+        {showCsvUpload ? (
+          <div className="flex-1 overflow-y-auto p-8 bg-[#050505]">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white/[0.04] border-2 border-orange-500/40 rounded-[2rem] p-8 space-y-6">
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined text-orange-500 text-3xl">upload_file</span>
+                  <div>
+                    <h3 className="text-lg font-bold text-white uppercase tracking-wider">Import HR Scores (CSV)</h3>
+                    <p className="text-xs text-white/60 mt-1">Upload CSV with individual student HR interview scores</p>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 border border-white/20 rounded-xl p-6 space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">CSV Format</label>
+                    <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 font-mono text-xs text-white/80">
+                      <div className="text-emerald-400 mb-2">// Expected format:</div>
+                      <div>student_email_or_roll, score</div>
+                      <div className="text-white/40 mt-2">// Example:</div>
+                      <div>student1@example.com, 35</div>
+                      <div>ROLL001, 38</div>
+                      <div>student2@example.com, 32</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">Select CSV File</label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleCsvFileChange}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-brand file:text-white file:font-bold file:text-xs file:uppercase file:tracking-wider hover:file:bg-blue-600 file:cursor-pointer"
+                    />
+                  </div>
+
+                  {csvPreview.length > 0 && (
+                    <div>
+                      <label className="block text-[10px] font-black text-white/60 uppercase tracking-widest mb-3">Preview (First 10 rows)</label>
+                      <div className="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 max-h-64 overflow-y-auto">
+                        <table className="w-full text-xs font-mono">
+                          <thead>
+                            <tr className="border-b border-white/10">
+                              <th className="text-left py-2 text-white/40">Line</th>
+                              <th className="text-left py-2 text-white/40">Student</th>
+                              <th className="text-left py-2 text-white/40">Score</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {csvPreview.map((row) => (
+                              <tr key={row.line} className="border-b border-white/5">
+                                <td className="py-2 text-white/40">{row.line}</td>
+                                <td className="py-2 text-white">{row.parsed[0]}</td>
+                                <td className="py-2 text-emerald-400">{row.parsed[1]}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {uploadProgress && (
+                    <div className="flex items-center gap-3 px-4 py-3 bg-brand/10 border border-brand/30 rounded-lg">
+                      <div className="w-5 h-5 border-2 border-brand/20 border-t-brand rounded-full animate-spin"></div>
+                      <span className="text-sm text-brand font-bold">{uploadProgress}</span>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleUploadCsv}
+                      disabled={!csvFile || submitting}
+                      className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                    >
+                      {submitting ? 'Uploading...' : 'Upload & Import Scores'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setCsvFile(null);
+                        setCsvPreview([]);
+                        setShowCsvUpload(false);
+                      }}
+                      className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-blue-400 text-lg">info</span>
+                    <div className="text-xs text-blue-400/90 space-y-1">
+                      <p className="font-bold">Important Notes:</p>
+                      <ul className="list-disc list-inside space-y-1 text-blue-400/70">
+                        <li>CSV format: student_email/roll, score (0-40)</li>
+                        <li>Header row will be automatically detected and skipped</li>
+                        <li>Students not found in database will be skipped</li>
+                        <li>HR judge can see overall performance of each student</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : !selectedTeam ? (
           <div className="flex-1 flex flex-col items-center justify-center text-white/20">
             <span className="material-symbols-outlined text-6xl mb-4">person_search</span>
             <p className="text-sm uppercase tracking-widest font-display">Select a finalist for HR interview</p>

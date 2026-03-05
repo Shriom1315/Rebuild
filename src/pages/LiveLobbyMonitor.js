@@ -24,19 +24,42 @@ const LiveLobbyMonitor = () => {
 
   const fetchLiveTeams = async () => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('teams')
-        .select(`*, students(id), team_round_status(violation_count, round_id)`)
+        .select(`
+          *,
+          students(id, full_name),
+          team_round_status(status, round_id)
+        `)
         .order('team_name', { ascending: true });
 
-      setTeams(data || []);
+      if (error) {
+        console.error('Error fetching teams:', error);
+        setTeams([]);
+      } else {
+        setTeams(data || []);
+      }
 
       const total = data?.length || 0;
-      const active = data?.filter(t => t.status === 'active').length || 0;
-      const qualified = data?.filter(t => t.status === 'qualified').length || 0;
-      const eliminated = data?.filter(t => t.status === 'eliminated').length || 0;
+      
+      // Count based on team_round_status, not team.status
+      const qualified = data?.filter(t => 
+        t.team_round_status?.some(s => s.status === 'qualified')
+      ).length || 0;
+      
+      const eliminated = data?.filter(t => 
+        t.team_round_status?.some(s => s.status === 'eliminated')
+      ).length || 0;
+      
+      // Active = teams that are not qualified or eliminated
+      const active = total - qualified - eliminated;
+      
       setStats({ total, active, qualified, eliminated });
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error('Fetch error:', e);
+      setTeams([]);
+      setStats({ total: 0, active: 0, qualified: 0, eliminated: 0 });
+    }
     setLoading(false);
   };
 
@@ -76,6 +99,10 @@ const LiveLobbyMonitor = () => {
           </Link>
 
           <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
+            <Link to="/admin/scores" className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
+              <span className="material-symbols-outlined text-base">grade</span>
+              Scores
+            </Link>
             <Link to="/admin/questions" className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
               <span className="material-symbols-outlined text-base">quiz</span>
               Questions
@@ -181,28 +208,34 @@ const LiveLobbyMonitor = () => {
                     <div className="flex items-center justify-between pt-5 border-t border-white/5 relative z-10">
                       <div className="flex items-center gap-3">
                         <div className="flex -space-x-2">
-                          {[1, 2].map((_, i) => (
+                          {team.students?.slice(0, 3).map((student, i) => (
                             <div key={i} className="w-6 h-6 rounded-full bg-white/10 border-2 border-[#050505] flex items-center justify-center text-[8px] font-black text-white/30 overflow-hidden backdrop-blur-md">
-                              {i + 1}
+                              {student.full_name?.charAt(0) || i + 1}
                             </div>
                           ))}
                         </div>
-                        <span className="text-[9px] text-white/20 font-black uppercase tracking-widest">{team.students?.length || 0} PERSONS</span>
+                        <span className="text-[9px] text-white/20 font-black uppercase tracking-widest">{team.students?.length || 0} MEMBERS</span>
                       </div>
                       <div className="text-right flex flex-col items-end">
-                        {team.team_round_status?.some(s => s.violation_count > 0) && (
+                        {team.team_round_status?.some(s => s.status === 'eliminated') && (
                           <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md mb-2">
                             <span className="material-symbols-outlined text-[10px] text-red-500">warning</span>
-                            <span className="text-[8px] font-black text-red-500 uppercase">{team.team_round_status.find(s => s.violation_count > 0)?.violation_count} VIOLATIONS</span>
+                            <span className="text-[8px] font-black text-red-500 uppercase">ELIMINATED</span>
                           </div>
                         )}
-                        <p className="text-[8px] font-black text-white/10 uppercase mb-0.5 tracking-widest">Telemetry</p>
-                        <p className="text-sm font-display font-bold text-white/40">{team.total_score} <span className="text-[9px] font-black">PTS</span></p>
+                        {team.team_round_status?.some(s => s.status === 'qualified') && (
+                          <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md mb-2">
+                            <span className="material-symbols-outlined text-[10px] text-emerald-500">verified</span>
+                            <span className="text-[8px] font-black text-emerald-500 uppercase">QUALIFIED</span>
+                          </div>
+                        )}
+                        <p className="text-[8px] font-black text-white/10 uppercase mb-0.5 tracking-widest">Status</p>
+                        <p className="text-sm font-display font-bold text-white/40 uppercase">{team.status}</p>
                       </div>
 
                       {/* Deco UI Element */}
                       <div className="absolute -bottom-4 -left-4 text-4xl font-display text-white/[0.03] italic font-black pointer-events-none">
-                        {team.team_code.split('-')[1]}
+                        {team.team_code?.split('-')[1] || 'XX'}
                       </div>
                     </div>
                   </div>

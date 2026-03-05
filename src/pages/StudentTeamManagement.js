@@ -88,6 +88,25 @@ const StudentTeamManagement = () => {
             </div>
           </div>
 
+          {/* Team Performance Stats */}
+          <div className="bg-white/[0.04] border-2 border-white/20 rounded-[2.5rem] p-8 md:p-10 animate-fadeIn">
+            <h3 className="text-[11px] font-black text-white/40 uppercase tracking-[0.5em] mb-6">Team Performance</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-6 bg-white/5 border border-white/10 rounded-2xl">
+                <p className="text-3xl font-bold text-brand mb-2">{teamMembers.length}</p>
+                <p className="text-xs text-white/40 uppercase tracking-widest font-black">Active Members</p>
+              </div>
+              <div className="text-center p-6 bg-white/5 border border-white/10 rounded-2xl">
+                <p className="text-3xl font-bold text-white mb-2">{stats.score}</p>
+                <p className="text-xs text-white/40 uppercase tracking-widest font-black">Team Average</p>
+              </div>
+              <div className="text-center p-6 bg-white/5 border border-white/10 rounded-2xl">
+                <p className="text-3xl font-bold text-emerald-400 mb-2">{stats.rank}</p>
+                <p className="text-xs text-white/40 uppercase tracking-widest font-black">Current Rank</p>
+              </div>
+            </div>
+          </div>
+
           {/* Members Grid */}
           <div className="space-y-8">
             <div className="flex items-center gap-6">

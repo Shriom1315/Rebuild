@@ -121,50 +121,233 @@ const AdminQuestionManagement = () => {
         }
     };
 
-    const handleCsvUpload = (e) => {
+    // Enhanced CSV parser that handles quotes and commas properly
+    const parseCSVLine = (line) => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            
+            if (char === '"') {
+                if (inQuotes && nextChar === '"') {
+                    // Escaped quote
+                    current += '"';
+                    i++; // Skip next quote
+                } else {
+                    // Toggle quote mode
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                // End of field
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        
+        // Add last field
+        result.push(current.trim());
+        return result;
+    };
+
+    // Validate question data
+    const validateQuestion = (q, rowNum) => {
+        const errors = [];
+        
+        if (!q.question_text?.trim()) {
+            errors.push(`Row ${rowNum}: Question text is required`);
+        }
+        
+        ['a', 'b', 'c', 'd'].forEach(opt => {
+            if (!q[`option_${opt}`]?.trim()) {
+                errors.push(`Row ${rowNum}: Option ${opt.toUpperCase()} is required`);
+            }
+        });
+        
+        if (!['a', 'b', 'c', 'd'].includes(q.correct_answer?.toLowerCase())) {
+            errors.push(`Row ${rowNum}: Correct answer must be a, b, c, or d (got: ${q.correct_answer})`);
+        }
+        
+        const points = parseInt(q.points);
+        if (isNaN(points) || points < 1) {
+            errors.push(`Row ${rowNum}: Points must be a positive number (got: ${q.points})`);
+        }
+        
+        return errors;
+    };
+
+    const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
+        if (!selectedRoundId) {
+            showToast('Please select a round first', 'error');
+            e.target.value = '';
+            return;
+        }
+
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        
+        if (fileExt === 'json') {
+            handleJsonUpload(file);
+        } else if (fileExt === 'csv') {
+            handleCsvUpload(file);
+        } else {
+            showToast('Please upload a CSV or JSON file', 'error');
+        }
+        
+        e.target.value = '';
+    };
+
+    const handleJsonUpload = (file) => {
         const reader = new FileReader();
         reader.onload = async (event) => {
-            const content = event.target.result;
-            const lines = content.split('\n');
-            const newQuestions = [];
+            try {
+                const data = JSON.parse(event.target.result);
+                
+                if (!Array.isArray(data)) {
+                    throw new Error('JSON must be an array of questions');
+                }
+                
+                const newQuestions = [];
+                const allErrors = [];
+                
+                data.forEach((item, idx) => {
+                    const rowNum = idx + 2; // +2 because row 1 is header
+                    const errors = validateQuestion(item, rowNum);
+                    
+                    if (errors.length > 0) {
+                        allErrors.push(...errors);
+                    } else {
+                        newQuestions.push({
+                            round_id: selectedRoundId,
+                            question_text: item.question_text.trim(),
+                            option_a: item.option_a.trim(),
+                            option_b: item.option_b.trim(),
+                            option_c: item.option_c.trim(),
+                            option_d: item.option_d.trim(),
+                            correct_answer: item.correct_answer.toLowerCase(),
+                            points: parseInt(item.points) || 1,
+                            question_order: questions.length + idx + 1
+                        });
+                    }
+                });
+                
+                if (allErrors.length > 0) {
+                    const errorMsg = `Validation errors:\n${allErrors.slice(0, 5).join('\n')}${allErrors.length > 5 ? `\n...and ${allErrors.length - 5} more errors` : ''}`;
+                    showToast(errorMsg, 'error');
+                    console.error('All validation errors:', allErrors);
+                    return;
+                }
+                
+                if (newQuestions.length > 0) {
+                    await saveQuestions(newQuestions);
+                } else {
+                    showToast('No valid questions found in file', 'error');
+                }
+                
+            } catch (error) {
+                showToast(`JSON parsing error: ${error.message}`, 'error');
+                console.error('JSON upload error:', error);
+            }
+        };
+        reader.readAsText(file);
+    };
 
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                if (cols.length >= 6) {
-                    newQuestions.push({
-                        round_id: selectedRoundId,
+    const handleCsvUpload = (file) => {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const content = event.target.result;
+                const lines = content.split('\n').filter(line => line.trim());
+                
+                if (lines.length < 2) {
+                    throw new Error('CSV file must have at least a header row and one data row');
+                }
+                
+                const newQuestions = [];
+                const allErrors = [];
+                
+                // Skip header row (index 0)
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const cols = parseCSVLine(line);
+                    const rowNum = i + 1;
+                    
+                    if (cols.length < 7) {
+                        allErrors.push(`Row ${rowNum}: Expected 7 columns, got ${cols.length}`);
+                        continue;
+                    }
+                    
+                    const questionData = {
                         question_text: cols[0],
                         option_a: cols[1],
                         option_b: cols[2],
                         option_c: cols[3],
                         option_d: cols[4],
-                        correct_answer: cols[5].toLowerCase(),
-                        points: parseInt(cols[6]) || 1,
-                        question_order: questions.length + i
-                    });
+                        correct_answer: cols[5],
+                        points: cols[6]
+                    };
+                    
+                    const errors = validateQuestion(questionData, rowNum);
+                    
+                    if (errors.length > 0) {
+                        allErrors.push(...errors);
+                    } else {
+                        newQuestions.push({
+                            round_id: selectedRoundId,
+                            question_text: questionData.question_text.trim(),
+                            option_a: questionData.option_a.trim(),
+                            option_b: questionData.option_b.trim(),
+                            option_c: questionData.option_c.trim(),
+                            option_d: questionData.option_d.trim(),
+                            correct_answer: questionData.correct_answer.toLowerCase(),
+                            points: parseInt(questionData.points) || 1,
+                            question_order: questions.length + newQuestions.length + 1
+                        });
+                    }
                 }
-            }
-
-            if (newQuestions.length > 0) {
-                setActionLoading(true);
-                try {
-                    const { error } = await supabase.from('questions').insert(newQuestions);
-                    if (error) throw error;
-                    showToast(`Imported ${newQuestions.length} questions`);
-                    fetchQuestions(selectedRoundId);
-                } catch (error) {
-                    showToast(error.message, 'error');
-                } finally {
-                    setActionLoading(false);
+                
+                if (allErrors.length > 0) {
+                    const errorMsg = `Validation errors:\n${allErrors.slice(0, 5).join('\n')}${allErrors.length > 5 ? `\n...and ${allErrors.length - 5} more errors` : ''}`;
+                    showToast(errorMsg, 'error');
+                    console.error('All validation errors:', allErrors);
+                    return;
                 }
+                
+                if (newQuestions.length > 0) {
+                    await saveQuestions(newQuestions);
+                } else {
+                    showToast('No valid questions found in CSV', 'error');
+                }
+                
+            } catch (error) {
+                showToast(`CSV parsing error: ${error.message}`, 'error');
+                console.error('CSV upload error:', error);
             }
         };
         reader.readAsText(file);
-        e.target.value = '';
+    };
+
+    const saveQuestions = async (newQuestions) => {
+        setActionLoading(true);
+        try {
+            const { error } = await supabase.from('questions').insert(newQuestions);
+            if (error) throw error;
+            showToast(`✅ Successfully imported ${newQuestions.length} questions!`);
+            fetchQuestions(selectedRoundId);
+        } catch (error) {
+            showToast(`Database error: ${error.message}`, 'error');
+            console.error('Save error:', error);
+        } finally {
+            setActionLoading(false);
+        }
     };
 
     const handleSignOut = async () => {
@@ -264,7 +447,15 @@ const AdminQuestionManagement = () => {
                                 className="flex items-center gap-3 px-6 py-3 bg-white/5 border-2 border-white/10 hover:border-white/30 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
                             >
                                 <span className="material-symbols-outlined text-sm">download</span>
-                                Download Template
+                                CSV Template
+                            </a>
+
+                            <a
+                                href={`${process.env.PUBLIC_URL}/questions_template.json`} download="questions_template.json"
+                                className="flex items-center gap-3 px-6 py-3 bg-white/5 border-2 border-white/10 hover:border-emerald-500/30 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                            >
+                                <span className="material-symbols-outlined text-sm">download</span>
+                                JSON Template
                             </a>
 
                             <button
@@ -272,8 +463,8 @@ const AdminQuestionManagement = () => {
                                 className="flex items-center gap-3 px-6 py-3 bg-white/5 border-2 border-white/10 hover:border-white/30 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
                             >
                                 <span className="material-symbols-outlined text-sm">upload_file</span>
-                                Upload CSV
-                                <input type="file" ref={fileInputRef} onChange={handleCsvUpload} accept=".csv" className="hidden" />
+                                Upload File
+                                <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".csv,.json" className="hidden" />
                             </button>
 
                             <button
@@ -343,16 +534,30 @@ const AdminQuestionManagement = () => {
                         )}
                     </div>
 
-                    {/* CSV TEMPLATE INSTRUCTIONS */}
+                    {/* FILE FORMAT INSTRUCTIONS */}
                     <div className="p-8 border-2 border-dashed border-white/10 rounded-[2.5rem] opacity-30">
                         <div className="flex items-start gap-6">
                             <span className="material-symbols-outlined text-brand text-xl">info</span>
-                            <div>
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-white mb-2">CSV Formatting Protocol</h4>
-                                <p className="text-[10px] text-white/60 leading-relaxed font-medium">
-                                    Format: <b>text, a, b, c, d, correct_key (a/b/c/d), points</b>.
-                                    Wrap strings containing commas in double quotes.
-                                </p>
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-white mb-2">CSV Format</h4>
+                                    <p className="text-[10px] text-white/60 leading-relaxed font-medium">
+                                        <b>Header:</b> question_text,option_a,option_b,option_c,option_d,correct_answer,points<br/>
+                                        <b>Example:</b> "What is 2+2?","3","4","5","6","b","1"<br/>
+                                        <b>Important:</b> Wrap all text in double quotes to handle commas properly
+                                    </p>
+                                </div>
+                                <div>
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-white mb-2">JSON Format (Recommended)</h4>
+                                    <p className="text-[10px] text-white/60 leading-relaxed font-medium font-mono">
+                                        [&#123;"question_text":"...","option_a":"...","option_b":"...","option_c":"...","option_d":"...","correct_answer":"b","points":1&#125;]
+                                    </p>
+                                </div>
+                                <div className="pt-2">
+                                    <p className="text-[9px] text-emerald-400/60 font-black uppercase tracking-widest">
+                                        ✓ Validation checks all data before saving
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,4 @@
 question_text,option_a,option_b,option_c,option_d,correct_answer,points
-"What is the output of 2 + 2 in JavaScript?","22","4","NaN","undefined","b",1
-"Which keyword is used to declare a constant in JS?","var","let","const","constant","c",1
-"What does DOM stand for?","Document Object Model","Data Object Management","Digital Ordinance Model","Desktop Output Mode","a",2
-"Which company developed React?","Google","Microsoft","Meta (Facebook)","Apple","c",1
-"Identify the correct way to write an arrow function.","function => {}","() => {}","=> () {}","arrow function() {}","b",1
+"What is 2+2?","3","4","5","6","b","1"
+"Which programming language is used for web development?","Python","JavaScript","C++","Java","b","1"
+"What does HTML stand for?","Hyper Text Markup Language","High Tech Modern Language","Home Tool Markup Language","Hyperlinks and Text Markup Language","a","1"

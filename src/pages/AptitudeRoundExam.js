@@ -86,8 +86,8 @@ const AptitudeRoundExam = () => {
             }
           }
 
-          // Also check localStorage for previous elimination
-          const wasEliminated = localStorage.getItem(`eliminated_${team.id}_${round.id}`);
+          // Check if THIS STUDENT was eliminated (not the team)
+          const wasEliminated = localStorage.getItem(`eliminated_${currentStudent.id}_${round.id}`);
           if (wasEliminated) {
             setIsEliminated(true);
             isEliminatedRef.current = true;
@@ -199,14 +199,14 @@ const AptitudeRoundExam = () => {
     const maxWarnings = maxWarningsRef.current;
 
     if (newCount >= maxWarnings) {
-      // ═══ ELIMINATION ═══
+      // ═══ INDIVIDUAL ELIMINATION ═══
       isEliminatedRef.current = true;
       setIsEliminated(true);
-      setViolationMessage("PROTOCOL TERMINATED: Maximum violations exceeded. You have been eliminated.");
+      setViolationMessage("PROTOCOL TERMINATED: You have been eliminated. Your team continues.");
       setShowViolationBanner(true);
 
-      // Persist elimination to localStorage
-      localStorage.setItem(`eliminated_${team.id}_${roundInfoRef.current.id}`, 'true');
+      // Persist INDIVIDUAL elimination to localStorage
+      localStorage.setItem(`eliminated_${currentStudent.id}_${roundInfoRef.current.id}`, 'true');
 
       // Exit fullscreen on elimination (with safety check)
       setTimeout(() => exitFullScreen(), 500); // Small delay to ensure state is updated
@@ -236,20 +236,27 @@ const AptitudeRoundExam = () => {
         console.error('Error auto-submitting on elimination:', submitError);
       }
 
-      // Update DB — mark team round status as eliminated
+      // Update DB — mark individual student as eliminated
       try {
+        // Mark individual student as eliminated in their answers
+        await supabase
+          .from('student_answers')
+          .update({ is_eliminated: true })
+          .eq('student_id', currentStudent.id)
+          .eq('round_id', roundInfoRef.current.id);
+
+        // Update team_round_status but DON'T eliminate the team
         await supabase
           .from('team_round_status')
           .upsert({
             team_id: team.id,
             round_id: roundInfoRef.current.id,
-            status: 'eliminated',
+            status: 'in_progress',  // Team continues!
             violation_count: newCount,
-            message: `Eliminated: ${reason} (${newCount} violations)`
+            message: `Student ${currentStudent.full_name} eliminated: ${reason} (${newCount} violations)`
           }, { onConflict: 'team_id, round_id' });
 
-        // Also update team table status to eliminated
-        await supabase.from('teams').update({ status: 'eliminated' }).eq('id', team.id);
+        // DON'T update team status - team continues with remaining members
       } catch (dbError) {
         console.error('Error saving elimination:', dbError);
       }
@@ -433,12 +440,19 @@ const AptitudeRoundExam = () => {
     if (submitting || isEliminated || hasSubmitted) return;
     setSubmitting(true);
     try {
-      const submissionData = Object.entries(answers).map(([qId, val]) => ({
-        student_id: currentStudent.id,
-        question_id: qId,
-        round_id: roundInfo.id,
-        selected_answer: val,
-      }));
+      const submissionData = Object.entries(answers).map(([qId, val]) => {
+        // Find the question to get the correct answer
+        const question = questions.find(q => q.id === qId);
+        const isCorrect = question ? val === question.correct_answer : false;
+        
+        return {
+          student_id: currentStudent.id,
+          question_id: qId,
+          round_id: roundInfo.id,
+          selected_answer: val,
+          is_correct: isCorrect  // Set is_correct field
+        };
+      });
 
       if (submissionData.length > 0) {
         const { error } = await supabase
@@ -460,7 +474,7 @@ const AptitudeRoundExam = () => {
     } finally {
       setSubmitting(false);
     }
-  }, [answers, currentStudent, roundInfo, submitting, isEliminated, hasSubmitted]);
+  }, [answers, currentStudent, roundInfo, submitting, isEliminated, hasSubmitted, questions]);
 
   // Timer logic
   useEffect(() => {
@@ -823,7 +837,7 @@ const AptitudeRoundExam = () => {
 
           {/* Question Number Grid */}
           <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-8 md:grid-cols-10 gap-1.5">
               {questions.map((q, i) => {
                 const status = getQuestionStatus(q.id, i);
                 return (
@@ -917,30 +931,30 @@ const AptitudeRoundExam = () => {
               <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-brand/30 rounded-tl-[2rem]"></div>
 
               <div className="relative z-10">
-                <p className="text-lg md:text-xl text-white leading-relaxed font-bold max-w-3xl">
+                <p className="text-xl md:text-2xl text-white leading-relaxed font-bold max-w-3xl">
                   {currentQuestion.question_text}
                 </p>
               </div>
             </div>
 
             {/* Options Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+            <div className="grid grid-cols-1 gap-4 mb-10">
               {['a', 'b', 'c', 'd'].map((opt) => (
                 <button
                   key={opt}
                   onClick={() => handleSelectOption(opt)}
-                  className={`flex items-center gap-4 md:gap-5 p-5 md:p-6 rounded-2xl border-2 transition-all text-left group shadow-lg ${answers[currentQuestion.id] === opt
+                  className={`flex items-center gap-4 md:gap-6 p-6 md:p-7 rounded-2xl border-2 transition-all text-left group shadow-lg ${answers[currentQuestion.id] === opt
                     ? 'bg-brand/15 border-brand shadow-[0_0_20px_rgba(var(--brand-rgb),0.15)]'
                     : 'bg-white/[0.02] border-white/10 hover:border-white/25 hover:bg-white/[0.04]'
                     }`}
                 >
-                  <div className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center font-black text-xs shrink-0 uppercase transition-all ${answers[currentQuestion.id] === opt
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center font-black text-sm shrink-0 uppercase transition-all ${answers[currentQuestion.id] === opt
                     ? 'bg-brand text-white shadow-[0_0_10px_rgba(var(--brand-rgb),0.3)]'
                     : 'bg-white/5 text-white/30 border border-white/10 group-hover:text-white/60 group-hover:border-white/20'
                     }`}>
                     {opt}
                   </div>
-                  <span className={`text-sm md:text-base font-medium ${answers[currentQuestion.id] === opt
+                  <span className={`text-base md:text-lg font-medium leading-relaxed ${answers[currentQuestion.id] === opt
                     ? 'text-white'
                     : 'text-white/50 group-hover:text-white/80'
                     }`}>

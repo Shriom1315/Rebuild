@@ -169,6 +169,55 @@ const AdminTeamManagement = () => {
     }
   };
 
+  const handleDisqualifyTeam = async (teamId, teamName) => {
+    if (!window.confirm(`Disqualify "${teamName}" from ALL rounds? This will block them from accessing any future rounds.`)) return;
+    
+    setActionLoading(true);
+    try {
+      // Get all rounds
+      const { data: roundsData, error: roundsError } = await supabase
+        .from('rounds')
+        .select('id, round_number');
+      
+      if (roundsError) throw roundsError;
+
+      // Delete existing records first to avoid conflicts
+      await supabase
+        .from('team_round_status')
+        .delete()
+        .eq('team_id', teamId);
+
+      // Insert elimination status for all rounds
+      const eliminationRecords = roundsData.map(round => ({
+        team_id: teamId,
+        round_id: round.id,
+        status: 'eliminated',
+        message: 'Team disqualified by admin'
+      }));
+
+      const { error: insertError } = await supabase
+        .from('team_round_status')
+        .insert(eliminationRecords);
+
+      if (insertError) throw insertError;
+
+      // Update team status
+      const { error: updateError } = await supabase
+        .from('teams')
+        .update({ status: 'eliminated' })
+        .eq('id', teamId);
+
+      if (updateError) throw updateError;
+
+      showToast(`Team "${teamName}" has been disqualified from all rounds`);
+      fetchTeams();
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleToggleRound = async (round) => {
     try {
       const { error } = await supabase
@@ -256,6 +305,10 @@ const AdminTeamManagement = () => {
           </div>
 
           <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
+            <Link to="/admin/scores" className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
+              <span className="material-symbols-outlined text-base">grade</span>
+              Scores
+            </Link>
             <Link to="/admin/questions" className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
               <span className="material-symbols-outlined text-base">quiz</span>
               Questions
@@ -389,12 +442,22 @@ const AdminTeamManagement = () => {
                             <button
                               onClick={() => { setSelectedTeamId(team.id); setShowAddStudent(true); }}
                               className="p-2.5 bg-white/5 border border-white/20 text-white/40 hover:text-white hover:bg-brand hover:border-brand rounded-xl transition-all"
+                              title="Add Member"
                             >
                               <span className="material-symbols-outlined text-base">person_add</span>
                             </button>
                             <button
+                              onClick={() => handleDisqualifyTeam(team.id, team.team_name)}
+                              className="p-2.5 bg-white/5 border border-white/20 text-white/40 hover:text-orange-500 hover:bg-orange-500/10 hover:border-orange-500/30 rounded-xl transition-all"
+                              title="Disqualify Team"
+                              disabled={actionLoading}
+                            >
+                              <span className="material-symbols-outlined text-base">block</span>
+                            </button>
+                            <button
                               onClick={() => handleDeleteTeam(team.id)}
                               className="p-2.5 bg-white/5 border border-white/20 text-white/40 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                              title="Delete Team"
                             >
                               <span className="material-symbols-outlined text-base">delete_forever</span>
                             </button>
