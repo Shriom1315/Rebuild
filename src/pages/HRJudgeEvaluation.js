@@ -137,7 +137,6 @@ const HRJudgeEvaluation = () => {
         setUploadProgress(`Processing ${lines.length} rows...`);
 
         const scores = [];
-        let skippedRows = 0;
         let headerSkipped = false;
 
         for (let i = 0; i < lines.length; i++) {
@@ -152,7 +151,6 @@ const HRJudgeEvaluation = () => {
           }
 
           if (parts.length < 2) {
-            skippedRows++;
             continue;
           }
 
@@ -160,7 +158,6 @@ const HRJudgeEvaluation = () => {
           const score = parseFloat(parts[1]);
 
           if (isNaN(score)) {
-            skippedRows++;
             continue;
           }
 

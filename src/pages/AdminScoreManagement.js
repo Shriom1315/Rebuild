@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
@@ -33,37 +33,7 @@ const AdminScoreManagement = () => {
     loadData();
   }, []);
 
-  useEffect(() => {
-    if (selectedRound) {
-      loadRoundScores();
-    }
-  }, [selectedRound]);
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const { data: roundsData } = await supabase
-        .from('rounds')
-        .select('*')
-        .order('round_number', { ascending: true });
-      
-      setRounds(roundsData || []);
-      if (roundsData && roundsData.length > 0) {
-        setSelectedRound(roundsData[0]);
-      }
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadRoundScores = async () => {
+  const loadRoundScores = useCallback(async () => {
     if (!selectedRound) return;
     
     try {
@@ -106,7 +76,13 @@ const AdminScoreManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedRound]);
+
+  useEffect(() => {
+    if (selectedRound) {
+      loadRoundScores();
+    }
+  }, [selectedRound, loadRoundScores]);
 
   const handleSaveScore = async (studentId, score, maxScore, remarks = '') => {
     try {
@@ -349,7 +325,6 @@ const AdminScoreManagement = () => {
 
         // Parse CSV - Expected format: email/roll_number, score
         const scores = [];
-        let skippedRows = 0;
         let headerSkipped = false;
 
         for (let i = 0; i < lines.length; i++) {
@@ -365,7 +340,6 @@ const AdminScoreManagement = () => {
           }
 
           if (parts.length < 2) {
-            skippedRows++;
             continue;
           }
 
@@ -373,7 +347,6 @@ const AdminScoreManagement = () => {
           const score = parseFloat(parts[1]);
 
           if (isNaN(score)) {
-            skippedRows++;
             continue;
           }
 

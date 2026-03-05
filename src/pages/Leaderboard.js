@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
@@ -16,12 +16,6 @@ const Leaderboard = () => {
   useEffect(() => {
     loadData();
   }, []);
-
-  useEffect(() => {
-    if (selectedRound) {
-      loadLeaderboard();
-    }
-  }, [selectedRound]);
 
   const loadData = async () => {
     try {
@@ -49,7 +43,7 @@ const Leaderboard = () => {
     }
   };
 
-  const loadLeaderboard = async () => {
+  const loadLeaderboard = useCallback(async () => {
     if (!selectedRound) return;
     
     try {
@@ -109,7 +103,13 @@ const Leaderboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedRound]);
+
+  useEffect(() => {
+    if (selectedRound) {
+      loadLeaderboard();
+    }
+  }, [selectedRound, loadLeaderboard]);
 
   const handleSignOut = async () => {
     await signOut();

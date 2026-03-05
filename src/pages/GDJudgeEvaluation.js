@@ -155,7 +155,6 @@ const GDJudgeEvaluation = () => {
 
         // Expected format: team_name, student_email/roll, score
         const scores = [];
-        let skippedRows = 0;
         let headerSkipped = false;
 
         for (let i = 0; i < lines.length; i++) {
@@ -171,7 +170,6 @@ const GDJudgeEvaluation = () => {
           }
 
           if (parts.length < 3) {
-            skippedRows++;
             continue;
           }
 
@@ -180,7 +178,6 @@ const GDJudgeEvaluation = () => {
           const score = parseFloat(parts[2]);
 
           if (isNaN(score)) {
-            skippedRows++;
             continue;
           }
 
