@@ -42,6 +42,10 @@ const AdminTeamManagement = () => {
   // Rounds state
   const [rounds, setRounds] = useState([]);
 
+  // Judges state
+  const [judges, setJudges] = useState([]);
+  const [loadingJudges, setLoadingJudges] = useState(false);
+
   // Stats
   const [stats, setStats] = useState({ total: 0, active: 0, qualified: 0, eliminated: 0, students: 0 });
 
@@ -51,7 +55,10 @@ const AdminTeamManagement = () => {
   useEffect(() => {
     fetchTeams();
     fetchRounds();
-  }, []);
+    if (activeTab === 'judges') {
+      fetchJudges();
+    }
+  }, [activeTab]);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -87,11 +94,28 @@ const AdminTeamManagement = () => {
       const { data, error } = await supabase
         .from('rounds')
         .select('*')
-        .order('round_number', { ascending: true });
+        .order('round_number', { ascending: true});
       if (error) throw error;
       setRounds(data || []);
     } catch (error) {
       console.error('Error fetching rounds:', error);
+    }
+  };
+
+  const fetchJudges = async () => {
+    setLoadingJudges(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['judge_gd', 'judge_hr'])
+        .order('full_name', { ascending: true });
+      if (error) throw error;
+      setJudges(data || []);
+    } catch (error) {
+      console.error('Error fetching judges:', error);
+    } finally {
+      setLoadingJudges(false);
     }
   };
 
@@ -796,15 +820,47 @@ const AdminTeamManagement = () => {
                 </button>
               </div>
 
-              <div className="bg-[#0a0a0a]/40 backdrop-blur-3xl border-2 border-dashed border-white/10 rounded-[3rem] p-16 text-center">
-                <div className="w-16 h-16 bg-white/5 border-2 border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8 text-white/20">
-                  <span className="material-symbols-outlined text-3xl">gavel</span>
+              {/* Judges List */}
+              {loadingJudges ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="w-8 h-8 border-2 border-brand/20 border-t-brand rounded-full animate-spin"></div>
                 </div>
-                <h3 className="text-xl font-display text-white uppercase tracking-widest mb-3">Central Judiciary Access</h3>
-                <p className="text-white/30 text-xs max-w-sm mx-auto leading-relaxed">
-                  Judges regain operational control through the primary Administrative Login terminal.
-                </p>
-              </div>
+              ) : judges.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {judges.map((judge) => (
+                    <div key={judge.id} className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-xl bg-brand/10 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-brand text-xl">gavel</span>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-base font-bold text-white mb-1">{judge.full_name}</h3>
+                          <p className="text-xs text-white/40 font-mono">{judge.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                          judge.role === 'judge_gd' 
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-orange-500/10 text-orange-400 border border-orange-500/30'
+                        }`}>
+                          {judge.role === 'judge_gd' ? 'GD Judge' : 'HR Judge'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#0a0a0a]/40 backdrop-blur-3xl border-2 border-dashed border-white/10 rounded-[3rem] p-16 text-center">
+                  <div className="w-16 h-16 bg-white/5 border-2 border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8 text-white/20">
+                    <span className="material-symbols-outlined text-3xl">gavel</span>
+                  </div>
+                  <h3 className="text-xl font-display text-white uppercase tracking-widest mb-3">No Judges Authorized</h3>
+                  <p className="text-white/30 text-xs max-w-sm mx-auto leading-relaxed">
+                    Click "Authorize Judge" to create judicial oversight accounts.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

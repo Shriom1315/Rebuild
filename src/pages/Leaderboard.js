@@ -25,16 +25,15 @@ const Leaderboard = () => {
       const { data: roundsData } = await supabase
         .from('rounds')
         .select('*')
+        .eq('results_announced', true)  // Only show announced rounds
         .order('round_number', { ascending: true });
       
       setRounds(roundsData || []);
       
       // Select latest announced round by default
-      const latestAnnounced = roundsData?.reverse().find(r => r.results_announced);
-      if (latestAnnounced) {
-        setSelectedRound(latestAnnounced);
-      } else if (roundsData && roundsData.length > 0) {
-        setSelectedRound(roundsData[0]);
+      if (roundsData && roundsData.length > 0) {
+        // All rounds are already announced (filtered in query)
+        setSelectedRound(roundsData[roundsData.length - 1]); // Select latest
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -194,24 +193,30 @@ const Leaderboard = () => {
             </div>
 
             {/* Round Selector */}
-            <div className="flex flex-wrap gap-3">
-              {rounds.map(round => (
-                <button
-                  key={round.id}
-                  onClick={() => setSelectedRound(round)}
-                  className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    selectedRound?.id === round.id
-                      ? 'bg-brand text-white shadow-glow-brand'
-                      : 'bg-white/5 text-white/60 hover:bg-white/10'
-                  }`}
-                >
-                  {round.name}
-                  {round.results_announced && (
-                    <span className="ml-2 text-emerald-400">✓</span>
-                  )}
-                </button>
-              ))}
-            </div>
+            {rounds.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {rounds.map(round => (
+                  <button
+                    key={round.id}
+                    onClick={() => setSelectedRound(round)}
+                    className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      selectedRound?.id === round.id
+                        ? 'bg-brand text-white shadow-glow-brand'
+                        : 'bg-white/5 text-white/60 hover:bg-white/10'
+                    }`}
+                  >
+                    {round.name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="px-6 py-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-yellow-400">info</span>
+                  <span className="text-sm text-yellow-400 font-bold">No results have been announced yet. Check back later!</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Leaderboard Table */}
@@ -221,13 +226,6 @@ const Leaderboard = () => {
                 <h3 className="text-xl font-display text-white uppercase tracking-wider">
                   {selectedRound.name} Rankings
                 </h3>
-                {!selectedRound.results_announced && (
-                  <div className="px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                    <span className="text-xs text-yellow-400 font-bold uppercase tracking-wider">
-                      Results Not Announced Yet
-                    </span>
-                  </div>
-                )}
               </div>
 
               {loading ? (

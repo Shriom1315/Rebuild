@@ -8,7 +8,6 @@ const HRJudgeEvaluation = () => {
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [students, setStudents] = useState([]);
-  const [pastScores, setPastScores] = useState({});
 
   const [evaluation, setEvaluation] = useState({});
   const [remarks, setRemarks] = useState({});
@@ -57,16 +56,6 @@ const HRJudgeEvaluation = () => {
     try {
       const { data: members } = await supabase.from('students').select('*').eq('team_id', team.id);
       setStudents(members || []);
-
-      const studentIds = members.map(m => m.id);
-      const { data: scores } = await supabase.from('student_scores').select('*, rounds(name, round_number)').in('student_id', studentIds);
-
-      const scoreMap = {};
-      scores?.forEach(s => {
-        if (!scoreMap[s.student_id]) scoreMap[s.student_id] = [];
-        scoreMap[s.student_id].push(s);
-      });
-      setPastScores(scoreMap);
 
       const initialEval = {};
       members.forEach(m => {
@@ -557,83 +546,112 @@ const HRJudgeEvaluation = () => {
             </header>
 
             <div className="flex-1 overflow-y-auto p-8 bg-[#050505]">
-              <div className="max-w-5xl mx-auto space-y-12">
-                {students.map((student) => (
-                  <div key={student.id} className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-8 animate-slideUp">
-                    <div className="flex flex-col md:flex-row justify-between gap-8 mb-10">
-                      <div className="flex items-start gap-5">
-                        <div className="w-16 h-16 rounded-2xl bg-brand/10 flex items-center justify-center text-brand font-display text-2xl">
-                          {student.full_name.charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-white">{student.full_name}</h3>
-                          <p className="text-xs text-white/30 font-mono mt-1">{student.roll_number}</p>
-
-                          {/* Aggregate Past Performance */}
-                          <div className="flex flex-wrap gap-2 mt-4">
-                            {pastScores[student.id]?.map(ps => (
-                              <div key={ps.id} className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg">
-                                <p className="text-[8px] text-white/20 uppercase font-bold tracking-tighter">Round {ps.rounds.round_number}</p>
-                                <p className="text-xs font-bold text-brand">{ps.score}<span className="text-[10px] font-normal text-white/20">/{ps.max_score}</span></p>
+              <div className="max-w-7xl mx-auto">
+                <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-8 animate-slideUp">
+                  {/* Table Header */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left py-4 px-4 text-[10px] text-white/40 uppercase font-bold tracking-widest min-w-[200px]">Student Name</th>
+                          <th className="text-center py-4 px-3 text-[10px] text-white/40 uppercase font-bold tracking-widest min-w-[120px]">Attitude<br/>(10)</th>
+                          <th className="text-center py-4 px-3 text-[10px] text-white/40 uppercase font-bold tracking-widest min-w-[120px]">Problem Solving<br/>(10)</th>
+                          <th className="text-center py-4 px-3 text-[10px] text-white/40 uppercase font-bold tracking-widest min-w-[120px]">Cultural Fit<br/>(10)</th>
+                          <th className="text-center py-4 px-3 text-[10px] text-white/40 uppercase font-bold tracking-widest min-w-[120px]">Technical<br/>(10)</th>
+                          <th className="text-center py-4 px-3 text-[10px] text-white/40 uppercase font-bold tracking-widest min-w-[80px]">Total<br/>(40)</th>
+                          <th className="text-center py-4 px-4 text-[10px] text-white/40 uppercase font-bold tracking-widest min-w-[120px]">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {students.map((student, idx) => (
+                          <tr key={student.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand font-display text-sm">
+                                  {student.full_name.charAt(0)}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-white">{student.full_name}</p>
+                                  <p className="text-[10px] text-white/30 font-mono">{student.roll_number}</p>
+                                </div>
                               </div>
+                            </td>
+                            {criteriaList.map((crit) => (
+                              <td key={crit.id} className="py-4 px-3 text-center">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="10"
+                                  value={evaluation[student.id]?.[crit.id] || ''}
+                                  onChange={(e) => {
+                                    const value = parseInt(e.target.value) || 0;
+                                    if (value >= 0 && value <= 10) {
+                                      handleScoreChange(student.id, crit.id, value);
+                                    }
+                                  }}
+                                  className="w-16 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-center text-white text-sm font-bold focus:outline-none focus:border-brand focus:bg-white/10 transition-all"
+                                  placeholder="0"
+                                />
+                              </td>
                             ))}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] text-white/20 uppercase font-bold tracking-widest mb-1">HR Score</p>
-                        <p className="text-3xl font-display text-white">
-                          {Object.values(evaluation[student.id] || {}).reduce((a, b) => a + b, 0)}
-                          <span className="text-sm font-normal text-white/20">/40</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                      {criteriaList.map((crit) => (
-                        <div key={crit.id} className="space-y-3">
-                          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-                            <span className="text-white/40">{crit.label}</span>
-                            <span className="text-brand">{evaluation[student.id]?.[crit.id] || 0}/10</span>
-                          </div>
-                          <div className="flex gap-1">
-                            {[...Array(10)].map((_, i) => (
+                            <td className="py-4 px-3 text-center">
+                              <div className="text-lg font-display text-brand">
+                                {Object.values(evaluation[student.id] || {}).reduce((a, b) => a + b, 0)}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center">
                               <button
-                                key={i}
-                                onClick={() => handleScoreChange(student.id, crit.id, i + 1)}
-                                className={`flex-1 h-8 rounded-md text-[10px] font-bold transition-all ${evaluation[student.id]?.[crit.id] === i + 1
-                                    ? 'bg-brand text-white'
-                                    : 'bg-white/5 text-white/20 hover:bg-white/10'
-                                  }`}
+                                onClick={() => handleSubmitEvaluation(student.id)}
+                                disabled={submitting}
+                                className="px-4 py-2 bg-brand hover:bg-brand/80 text-white border border-brand/20 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50"
                               >
-                                {i + 1}
+                                {submitting ? 'Saving...' : 'Save'}
                               </button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-10 pt-8 border-t border-white/5 flex flex-col md:flex-row items-end gap-6">
-                      <div className="flex-1 w-full">
-                        <label className="text-[10px] text-white/20 uppercase font-bold tracking-widest block mb-2">Interview Summary</label>
-                        <textarea
-                          placeholder="Final assessment of candidate mindset and fit..."
-                          value={remarks[student.id] || ''}
-                          onChange={(e) => setRemarks({ ...remarks, [student.id]: e.target.value })}
-                          className="w-full bg-white/5 border border-white/5 rounded-xl p-4 text-sm text-white/80 placeholder-white/20 focus:outline-none focus:border-brand/30 transition-all h-20"
-                        />
-                      </div>
-                      <button
-                        onClick={() => handleSubmitEvaluation(student.id)}
-                        disabled={submitting}
-                        className="px-8 py-4 bg-brand text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50"
-                      >
-                        {submitting ? 'Saving...' : 'Finalize HR Score'}
-                      </button>
-                    </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
+
+                  {/* Team Average */}
+                  <div className="mt-8 pt-6 border-t border-white/10 flex justify-between items-center">
+                    <div>
+                      <p className="text-[10px] text-white/20 uppercase font-bold tracking-widest mb-1">Team Average Score</p>
+                      <p className="text-3xl font-display text-brand">
+                        {students.length > 0
+                          ? (students.reduce((sum, student) => {
+                              return sum + Object.values(evaluation[student.id] || {}).reduce((a, b) => a + b, 0);
+                            }, 0) / students.length).toFixed(2)
+                          : '0.00'}
+                        <span className="text-sm font-normal text-white/20">/40</span>
+                      </p>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        // Save all evaluations at once
+                        for (const student of students) {
+                          await handleSubmitEvaluation(student.id);
+                        }
+                      }}
+                      disabled={submitting}
+                      className="px-8 py-4 bg-brand hover:bg-brand/80 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50 shadow-lg shadow-brand/20"
+                    >
+                      {submitting ? 'Saving All...' : 'Save All Evaluations'}
+                    </button>
+                  </div>
+
+                  {/* Remarks Section */}
+                  <div className="mt-8 pt-6 border-t border-white/10">
+                    <label className="text-[10px] text-white/20 uppercase font-bold tracking-widest block mb-3">Team Interview Summary</label>
+                    <textarea
+                      placeholder="Final assessment of team performance, mindset, and overall fit..."
+                      value={remarks[selectedTeam.id] || ''}
+                      onChange={(e) => setRemarks({ ...remarks, [selectedTeam.id]: e.target.value })}
+                      className="w-full bg-white/5 border border-white/5 rounded-xl p-4 text-sm text-white/80 placeholder-white/20 focus:outline-none focus:border-brand/30 transition-all resize-none h-24"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </>
