@@ -280,12 +280,14 @@ const AdminScoreManagement = () => {
             correct_count: 0,
             wrong_count: 0,
             total_questions: 0,
-            score: 0
+            score: 0,
+            max_score: 0
           };
         }
         
         const points = answer.questions?.points || 1;
         studentScoresMap[answer.student_id].total_questions++;
+        studentScoresMap[answer.student_id].max_score += points;
         
         if (answer.is_correct) {
           studentScoresMap[answer.student_id].correct_count++;
@@ -298,8 +300,8 @@ const AdminScoreManagement = () => {
       // Calculate percentages and insert scores
       const scoresArray = Object.values(studentScoresMap).map(s => ({
         ...s,
-        percentage: s.total_questions > 0 
-          ? parseFloat(((s.correct_count / s.total_questions) * 100).toFixed(1))
+        percentage: s.max_score > 0 
+          ? parseFloat(((s.score / s.max_score) * 100).toFixed(1))
           : 0
       }));
       
