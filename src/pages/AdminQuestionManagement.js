@@ -27,7 +27,24 @@ const AdminQuestionManagement = () => {
         option_d: '',
         correct_answer: 'a',
         points: 1,
-        question_order: 0
+        question_order: 0,
+        image_url: '',
+        question_type: 'text',
+        option_a_image: '',
+        option_b_image: '',
+        option_c_image: '',
+        option_d_image: ''
+    });
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    
+    // Option images state
+    const [optionImages, setOptionImages] = useState({
+        a: { file: null, preview: null },
+        b: { file: null, preview: null },
+        c: { file: null, preview: null },
+        d: { file: null, preview: null }
     });
 
     useEffect(() => {
@@ -78,15 +95,169 @@ const AdminQuestionManagement = () => {
         }
     };
 
+    const handleImageSelect = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            showToast('Please select an image file', 'error');
+            return;
+        }
+
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('Image size must be less than 2MB', 'error');
+            return;
+        }
+
+        setImageFile(file);
+        
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+        
+        setFormData({ ...formData, question_type: 'image' });
+    };
+
+    const removeImage = () => {
+        setImageFile(null);
+        setImagePreview(null);
+        setFormData({ ...formData, image_url: '', question_type: 'text' });
+    };
+
+    const handleOptionImageSelect = (option, e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            showToast('Please select an image file', 'error');
+            return;
+        }
+
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('Image size must be less than 2MB', 'error');
+            return;
+        }
+
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setOptionImages(prev => ({
+                ...prev,
+                [option]: { file, preview: reader.result }
+            }));
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const removeOptionImage = (option) => {
+        setOptionImages(prev => ({
+            ...prev,
+            [option]: { file: null, preview: null }
+        }));
+        setFormData({ ...formData, [`option_${option}_image`]: '' });
+    };
+
+    const uploadImage = async () => {
+        if (!imageFile) return null;
+
+        setUploadingImage(true);
+        try {
+            const fileExt = imageFile.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `question-images/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('questions')
+                .upload(filePath, imageFile);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('questions')
+                .getPublicUrl(filePath);
+
+            return publicUrl;
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            showToast('Failed to upload image', 'error');
+            return null;
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
+    const uploadOptionImage = async (file) => {
+        if (!file) return null;
+
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `question-images/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('questions')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('questions')
+                .getPublicUrl(filePath);
+
+            return publicUrl;
+        } catch (error) {
+            console.error('Error uploading option image:', error);
+            showToast('Failed to upload option image', 'error');
+            return null;
+        }
+    };
+
     const handleManualSubmit = async (e) => {
         e.preventDefault();
         if (!selectedRoundId) return showToast('Please select a round first', 'error');
 
         setActionLoading(true);
         try {
+            let imageUrl = formData.image_url;
+            
+            // Upload question image if selected
+            if (imageFile) {
+                imageUrl = await uploadImage();
+                if (!imageUrl) {
+                    setActionLoading(false);
+                    return;
+                }
+            }
+
+            // Upload option images if selected
+            const optionImageUrls = {};
+            for (const opt of ['a', 'b', 'c', 'd']) {
+                if (optionImages[opt].file) {
+                    setUploadingImage(true);
+                    const optImageUrl = await uploadOptionImage(optionImages[opt].file);
+                    setUploadingImage(false);
+                    if (optImageUrl) {
+                        optionImageUrls[`option_${opt}_image`] = optImageUrl;
+                    }
+                }
+            }
+
             const { error } = await supabase
                 .from('questions')
-                .insert([{ ...formData, round_id: selectedRoundId }]);
+                .insert([{ 
+                    ...formData, 
+                    round_id: selectedRoundId,
+                    image_url: imageUrl || null,
+                    question_type: imageUrl ? 'image' : 'text',
+                    ...optionImageUrls
+                }]);
 
             if (error) throw error;
             showToast('Question added successfully');
@@ -99,7 +270,21 @@ const AdminQuestionManagement = () => {
                 option_d: '',
                 correct_answer: 'a',
                 points: 1,
-                question_order: questions.length + 1
+                question_order: questions.length + 1,
+                image_url: '',
+                question_type: 'text',
+                option_a_image: '',
+                option_b_image: '',
+                option_c_image: '',
+                option_d_image: ''
+            });
+            setImageFile(null);
+            setImagePreview(null);
+            setOptionImages({
+                a: { file: null, preview: null },
+                b: { file: null, preview: null },
+                c: { file: null, preview: null },
+                d: { file: null, preview: null }
             });
             fetchQuestions(selectedRoundId);
         } catch (error) {
@@ -588,6 +773,42 @@ const AdminQuestionManagement = () => {
 
                         <div className="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
                             <form id="question-form" onSubmit={handleManualSubmit} className="space-y-10 pb-4">
+                                {/* Image Upload Section */}
+                                <div className="space-y-3">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40">Question Image (Optional)</label>
+                                    
+                                    {imagePreview ? (
+                                        <div className="relative">
+                                            <img 
+                                                src={imagePreview} 
+                                                alt="Preview" 
+                                                className="w-full max-h-[300px] object-contain rounded-2xl border-2 border-white/10 bg-white/5"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={removeImage}
+                                                className="absolute top-3 right-3 p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all"
+                                            >
+                                                <span className="material-symbols-outlined text-sm">close</span>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="block w-full p-8 border-2 border-dashed border-white/20 rounded-2xl hover:border-brand/50 transition-all cursor-pointer bg-white/5">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageSelect}
+                                                className="hidden"
+                                            />
+                                            <div className="flex flex-col items-center gap-3 text-white/40">
+                                                <span className="material-symbols-outlined text-4xl">add_photo_alternate</span>
+                                                <p className="text-xs font-bold">Click to upload image</p>
+                                                <p className="text-[10px]">PNG, JPG, SVG (Max 2MB)</p>
+                                            </div>
+                                        </label>
+                                    )}
+                                </div>
+
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-white/40">Protocol Narrative</label>
                                     <textarea
@@ -601,14 +822,47 @@ const AdminQuestionManagement = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {['a', 'b', 'c', 'd'].map(opt => (
-                                        <div key={opt} className="space-y-2">
+                                        <div key={opt} className="space-y-3">
                                             <label className="text-[9px] font-black uppercase tracking-widest text-white/40">Response Node {opt.toUpperCase()}</label>
+                                            
+                                            {/* Option Image Upload */}
+                                            {optionImages[opt].preview ? (
+                                                <div className="relative">
+                                                    <img 
+                                                        src={optionImages[opt].preview} 
+                                                        alt={`Option ${opt.toUpperCase()}`} 
+                                                        className="w-full max-h-[150px] object-contain rounded-xl border-2 border-white/10 bg-white/5"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeOptionImage(opt)}
+                                                        className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all"
+                                                    >
+                                                        <span className="material-symbols-outlined text-xs">close</span>
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <label className="block w-full p-4 border-2 border-dashed border-white/10 rounded-xl hover:border-brand/30 transition-all cursor-pointer bg-white/5">
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => handleOptionImageSelect(opt, e)}
+                                                        className="hidden"
+                                                    />
+                                                    <div className="flex flex-col items-center gap-2 text-white/30">
+                                                        <span className="material-symbols-outlined text-2xl">add_photo_alternate</span>
+                                                        <p className="text-[9px] font-bold">Add Image (Optional)</p>
+                                                    </div>
+                                                </label>
+                                            )}
+                                            
+                                            {/* Option Text */}
                                             <input
-                                                type="text" required
+                                                type="text"
                                                 value={formData[`option_${opt}`]}
                                                 onChange={(e) => setFormData({ ...formData, [`option_${opt}`]: e.target.value })}
                                                 className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-6 py-4 text-xs font-bold text-white placeholder-white/10 focus:border-brand outline-none transition-all"
-                                                placeholder={`Option ${opt.toUpperCase()} value...`}
+                                                placeholder={`Option ${opt.toUpperCase()} text (optional if image added)...`}
                                             />
                                         </div>
                                     ))}
@@ -655,10 +909,10 @@ const AdminQuestionManagement = () => {
                             <button
                                 type="submit"
                                 form="question-form"
-                                disabled={actionLoading}
+                                disabled={actionLoading || uploadingImage}
                                 className="flex-1 py-4 bg-brand hover:shadow-glow-brand text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all rounded-xl disabled:opacity-50"
                             >
-                                {actionLoading ? 'INITIALIZING...' : 'COMMIT_PROTOCOL'}
+                                {uploadingImage ? 'UPLOADING IMAGE...' : actionLoading ? 'INITIALIZING...' : 'COMMIT_PROTOCOL'}
                             </button>
                         </div>
                     </div>

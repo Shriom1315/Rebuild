@@ -67,7 +67,9 @@ const AptitudeRoundExam = () => {
             .eq('round_id', round.id)
             .order('question_order', { ascending: true });
 
-          setQuestions(qs || []);
+          // Randomize questions for this student using their ID as seed
+          const randomizedQuestions = shuffleArray(qs || [], currentStudent.id);
+          setQuestions(randomizedQuestions);
 
           // Get existing team-round status (for violations)
           const { data: statusData } = await supabase
@@ -102,7 +104,7 @@ const AptitudeRoundExam = () => {
 
           if (existingAnswers && existingAnswers.length > 0) {
             // Check if any answer has submitted=true or if there are answers at all
-            const isSubmitted = existingAnswers.some(a => a.submitted === true) || existingAnswers.length >= (qs?.length || 0);
+            const isSubmitted = existingAnswers.some(a => a.submitted === true) || existingAnswers.length >= (randomizedQuestions?.length || 0);
 
             // Check localStorage for submission flag as backup
             const localSubmitted = localStorage.getItem(`exam_submitted_${currentStudent.id}_${round.id}`);
@@ -125,6 +127,21 @@ const AptitudeRoundExam = () => {
 
     fetchExamData();
   }, [team, currentStudent]);
+
+  // Shuffle array using student ID as seed for consistent randomization
+  const shuffleArray = (array, seed) => {
+    const arr = [...array];
+    // Simple seeded random function
+    let random = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
+    for (let i = arr.length - 1; i > 0; i--) {
+      random = (random * 9301 + 49297) % 233280;
+      const j = Math.floor((random / 233280) * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    
+    return arr;
+  };
 
   // ═══ FULLSCREEN HELPERS ═══
   const enterFullScreen = () => {
@@ -919,37 +936,85 @@ const AptitudeRoundExam = () => {
             </div>
 
             {/* Question Box - Large */}
-            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 mb-8 min-h-[200px] flex items-center">
-              <p className="text-xl text-white leading-relaxed">
-                {currentQuestion.question_text}
-              </p>
+            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 mb-8 min-h-[200px]">
+              {/* Question Image (if available) */}
+              {currentQuestion.image_url && (
+                <div className="mb-6 flex justify-center">
+                  <img 
+                    src={currentQuestion.image_url} 
+                    alt="Question diagram"
+                    className="max-w-full max-h-[300px] rounded-xl border border-white/10"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      console.error('Failed to load question image');
+                    }}
+                  />
+                </div>
+              )}
+              
+              {/* Question Text */}
+              <div className="flex items-center">
+                <p className="text-xl text-white leading-relaxed break-words overflow-wrap-anywhere">
+                  {currentQuestion.question_text}
+                </p>
+              </div>
             </div>
 
-            {/* Options Grid - 2x2 Layout */}
+            {/* Options Grid - 2x2 Layout with Image Support */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              {['a', 'b', 'c', 'd'].map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => handleSelectOption(opt)}
-                  className={`flex items-start gap-4 p-5 rounded-xl border-2 transition-all text-left ${answers[currentQuestion.id] === opt
-                    ? 'bg-brand/10 border-brand'
-                    : 'bg-white/[0.02] border-white/10 hover:border-white/30'
-                    }`}
-                >
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-base shrink-0 uppercase ${answers[currentQuestion.id] === opt
-                    ? 'bg-brand text-white'
-                    : 'bg-white/5 text-white/40 border border-white/10'
-                    }`}>
-                    {opt}
-                  </div>
-                  <span className={`text-base leading-relaxed pt-1.5 ${answers[currentQuestion.id] === opt
-                    ? 'text-white font-medium'
-                    : 'text-white/60'
-                    }`}>
-                    {currentQuestion[`option_${opt}`]}
-                  </span>
-                </button>
-              ))}
+              {['a', 'b', 'c', 'd'].map((opt) => {
+                const hasImage = currentQuestion[`option_${opt}_image`];
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => handleSelectOption(opt)}
+                    className={`flex flex-col gap-3 p-5 rounded-xl border-2 transition-all text-left ${answers[currentQuestion.id] === opt
+                      ? 'bg-brand/10 border-brand'
+                      : 'bg-white/[0.02] border-white/10 hover:border-white/30'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-base shrink-0 uppercase ${answers[currentQuestion.id] === opt
+                        ? 'bg-brand text-white'
+                        : 'bg-white/5 text-white/40 border border-white/10'
+                        }`}>
+                        {opt}
+                      </div>
+                      {!hasImage && (
+                        <span className={`text-base leading-relaxed break-words overflow-wrap-anywhere flex-1 ${answers[currentQuestion.id] === opt
+                          ? 'text-white font-medium'
+                          : 'text-white/60'
+                          }`}>
+                          {currentQuestion[`option_${opt}`]}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Option Image */}
+                    {hasImage && (
+                      <div className="w-full">
+                        <img 
+                          src={currentQuestion[`option_${opt}_image`]} 
+                          alt={`Option ${opt.toUpperCase()}`}
+                          className="w-full max-h-[200px] object-contain rounded-lg border border-white/10"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            console.error('Failed to load option image');
+                          }}
+                        />
+                        {currentQuestion[`option_${opt}`] && (
+                          <p className={`text-sm mt-2 break-words overflow-wrap-anywhere ${answers[currentQuestion.id] === opt
+                            ? 'text-white font-medium'
+                            : 'text-white/60'
+                            }`}>
+                            {currentQuestion[`option_${opt}`]}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Navigation Controls */}

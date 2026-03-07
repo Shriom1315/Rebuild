@@ -28,6 +28,10 @@ const AdminScoreManagement = () => {
   const [csvPreview, setCsvPreview] = useState([]);
   const [showCsvUpload, setShowCsvUpload] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
+  
+  // Team scoring state
+  const [teamScores, setTeamScores] = useState({});
+  const [editingTeamScore, setEditingTeamScore] = useState(null);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -94,6 +98,18 @@ const AdminScoreManagement = () => {
         scoresMap[s.student_id] = s;
       });
       setScores(scoresMap);
+      
+      // Get team scores for this round
+      const { data: teamScoresData } = await supabase
+        .from('team_round_status')
+        .select('team_id, score, max_score, remarks')
+        .eq('round_id', selectedRound.id);
+      
+      const teamScoresMap = {};
+      teamScoresData?.forEach(ts => {
+        teamScoresMap[ts.team_id] = ts;
+      });
+      setTeamScores(teamScoresMap);
 
     } catch (error) {
       console.error('Error loading round scores:', error);
@@ -133,6 +149,38 @@ const AdminScoreManagement = () => {
       await updateTeamScores();
     } catch (error) {
       console.error('Error saving score:', error);
+      showToast(error.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+  
+  const handleSaveTeamScore = async (teamId, score, maxScore, remarks = '') => {
+    try {
+      setSaving(true);
+      
+      const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
+
+      // Save the team score
+      const { error } = await supabase
+        .from('team_round_status')
+        .upsert({
+          team_id: teamId,
+          round_id: selectedRound.id,
+          score: parseFloat(score),
+          max_score: parseFloat(maxScore),
+          percentage: parseFloat(percentage.toFixed(2)),
+          remarks: remarks || null,
+          status: 'qualified' // Mark as qualified instead of completed
+        }, { onConflict: 'team_id, round_id' });
+
+      if (error) throw error;
+
+      showToast('Team score saved successfully');
+      setEditingTeamScore(null);
+      await loadRoundScores();
+    } catch (error) {
+      console.error('Error saving team score:', error);
       showToast(error.message, 'error');
     } finally {
       setSaving(false);
@@ -745,8 +793,12 @@ const AdminScoreManagement = () => {
           {/* Scores Table */}
           {selectedRound && (
             <div className="space-y-6">
+              
+              {/* Toggle between Individual and Team Scoring */}
               <div className="flex items-center gap-4">
-                <h3 className="text-[10px] text-white/40 font-black uppercase tracking-[0.5em]">Individual Scores - {selectedRound.name}</h3>
+                <h3 className="text-[10px] text-white/40 font-black uppercase tracking-[0.5em]">
+                  {selectedRound.round_number === 2 ? 'Team Scores' : 'Individual Scores'} - {selectedRound.name}
+                </h3>
                 <div className="flex-1 h-px bg-white/10"></div>
               </div>
 
@@ -757,7 +809,136 @@ const AdminScoreManagement = () => {
                 </div>
               ) : teams.length === 0 ? (
                 <div className="py-20 text-center opacity-20 uppercase tracking-[0.3em] text-[10px] font-black">No teams found</div>
+              ) : selectedRound.round_number === 2 ? (
+                // TEAM-BASED SCORING FOR TECHNICAL ROUND (Round 2)
+                <div className="space-y-4">
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <span className="material-symbols-outlined text-blue-400 text-lg">info</span>
+                      <div className="text-xs text-blue-400/90">
+                        <p className="font-bold mb-1">Technical Round - Team Scoring</p>
+                        <p className="text-blue-400/70">Enter scores directly for each team. Technical round is conducted team-wise, so scores are assigned per team rather than per student.</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {teams.map(team => {
+                    const teamScore = teamScores[team.id];
+                    const isEditing = editingTeamScore === team.id;
+
+                    return (
+                      <div key={team.id} className="bg-white/[0.04] border-2 border-white/20 rounded-[2rem] p-6 md:p-8">
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <h4 className="text-lg font-bold text-white uppercase tracking-wider">{team.team_name}</h4>
+                            <p className="text-[9px] font-mono text-brand font-black uppercase tracking-widest mt-1">{team.team_code}</p>
+                            <div className="flex gap-2 mt-2">
+                              {team.students?.map(student => (
+                                <span key={student.id} className="text-[8px] text-white/40 bg-white/5 px-2 py-1 rounded">
+                                  {student.full_name}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {isEditing ? (
+                            <div className="flex items-center gap-3">
+                              <div className="text-right mr-4">
+                                <label className="block text-[8px] font-black text-white/40 uppercase tracking-widest mb-2">Score</label>
+                                <input
+                                  type="number"
+                                  defaultValue={teamScore?.score || 0}
+                                  id={`team-score-${team.id}`}
+                                  className="w-24 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white font-mono text-lg text-center"
+                                  step="0.1"
+                                  min="0"
+                                />
+                              </div>
+                              <div className="text-white/40 text-2xl">/</div>
+                              <div className="text-right mr-4">
+                                <label className="block text-[8px] font-black text-white/40 uppercase tracking-widest mb-2">Max</label>
+                                <input
+                                  type="number"
+                                  defaultValue={teamScore?.max_score || 100}
+                                  id={`team-max-${team.id}`}
+                                  className="w-24 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white font-mono text-lg text-center"
+                                  step="0.1"
+                                  min="0"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <button
+                                  onClick={() => {
+                                    const score = document.getElementById(`team-score-${team.id}`).value;
+                                    const maxScore = document.getElementById(`team-max-${team.id}`).value;
+                                    const remarks = document.getElementById(`team-remarks-${team.id}`)?.value || '';
+                                    handleSaveTeamScore(team.id, score, maxScore, remarks);
+                                  }}
+                                  disabled={saving}
+                                  className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => setEditingTeamScore(null)}
+                                  className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[9px] font-black uppercase tracking-widest"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-6">
+                              <div className="text-right">
+                                {teamScore ? (
+                                  <>
+                                    <p className="text-3xl font-display font-bold text-brand">
+                                      {teamScore.score?.toFixed(1) || 0}
+                                    </p>
+                                    <p className="text-sm text-white/40">
+                                      out of {teamScore.max_score || 100}
+                                    </p>
+                                    <p className="text-xs text-emerald-400 font-bold mt-1">
+                                      {teamScore.percentage?.toFixed(1) || 0}%
+                                    </p>
+                                    {teamScore.remarks && (
+                                      <p className="text-[9px] text-white/30 mt-2 max-w-xs">
+                                        {teamScore.remarks}
+                                      </p>
+                                    )}
+                                  </>
+                                ) : (
+                                  <p className="text-sm text-white/40 uppercase tracking-wider">No score entered</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => setEditingTeamScore(team.id)}
+                                className="p-3 bg-white/10 hover:bg-brand text-white rounded-lg transition-all"
+                              >
+                                <span className="material-symbols-outlined">{teamScore ? 'edit' : 'add'}</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {isEditing && (
+                          <div className="mt-6 pt-6 border-t border-white/10">
+                            <label className="block text-[8px] font-black text-white/40 uppercase tracking-widest mb-2">Remarks (Optional)</label>
+                            <textarea
+                              id={`team-remarks-${team.id}`}
+                              defaultValue={teamScore?.remarks || ''}
+                              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white text-sm resize-none"
+                              rows="2"
+                              placeholder="Add notes about team performance..."
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
+                // INDIVIDUAL SCORING FOR OTHER ROUNDS
                 <div className="space-y-6">
                   {teams.map(team => (
                     <div key={team.id} className="bg-white/[0.04] border-2 border-white/20 rounded-[2rem] p-6 md:p-8">

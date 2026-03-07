@@ -61,32 +61,58 @@ const Leaderboard = () => {
         `)
         .order('team_name', { ascending: true });
 
-      // Get scores for this round
-      const { data: scoresData } = await supabase
-        .from('student_scores')
-        .select('*')
-        .eq('round_id', selectedRound.id);
+      // Check if this is a team-based round (Technical Round = Round 2)
+      const isTeamBasedRound = selectedRound.round_number === 2;
 
-      // Calculate team averages
-      const leaderboard = teamsData?.map(team => {
-        const teamStudents = team.students || [];
-        const teamScores = teamStudents
-          .map(s => scoresData?.find(score => score.student_id === s.id))
-          .filter(Boolean);
-        
-        const totalScore = teamScores.reduce((sum, s) => sum + (s.score || 0), 0);
-        const avgScore = teamStudents.length > 0 ? totalScore / teamStudents.length : 0;
-        const totalPercentage = teamScores.reduce((sum, s) => sum + (s.percentage || 0), 0);
-        const avgPercentage = teamStudents.length > 0 ? totalPercentage / teamStudents.length : 0;
+      let leaderboard = [];
 
-        return {
-          ...team,
-          avgScore: parseFloat(avgScore.toFixed(2)),
-          avgPercentage: parseFloat(avgPercentage.toFixed(1)),
-          memberCount: teamStudents.length,
-          scoresCount: teamScores.length
-        };
-      }) || [];
+      if (isTeamBasedRound) {
+        // For Technical Round: Get team scores from team_round_status
+        const { data: teamScoresData } = await supabase
+          .from('team_round_status')
+          .select('team_id, score, max_score, percentage')
+          .eq('round_id', selectedRound.id);
+
+        leaderboard = teamsData?.map(team => {
+          const teamScore = teamScoresData?.find(ts => ts.team_id === team.id);
+          const teamStudents = team.students || [];
+
+          return {
+            ...team,
+            avgScore: teamScore?.score || 0,
+            avgPercentage: teamScore?.percentage || 0,
+            memberCount: teamStudents.length,
+            scoresCount: teamScore?.score ? 1 : 0, // 1 if team has score, 0 otherwise
+            maxScore: teamScore?.max_score || 100
+          };
+        }) || [];
+      } else {
+        // For other rounds: Calculate from individual student scores
+        const { data: scoresData } = await supabase
+          .from('student_scores')
+          .select('*')
+          .eq('round_id', selectedRound.id);
+
+        leaderboard = teamsData?.map(team => {
+          const teamStudents = team.students || [];
+          const teamScores = teamStudents
+            .map(s => scoresData?.find(score => score.student_id === s.id))
+            .filter(Boolean);
+          
+          const totalScore = teamScores.reduce((sum, s) => sum + (s.score || 0), 0);
+          const avgScore = teamStudents.length > 0 ? totalScore / teamStudents.length : 0;
+          const totalPercentage = teamScores.reduce((sum, s) => sum + (s.percentage || 0), 0);
+          const avgPercentage = teamStudents.length > 0 ? totalPercentage / teamStudents.length : 0;
+
+          return {
+            ...team,
+            avgScore: parseFloat(avgScore.toFixed(2)),
+            avgPercentage: parseFloat(avgPercentage.toFixed(1)),
+            memberCount: teamStudents.length,
+            scoresCount: teamScores.length
+          };
+        }) || [];
+      }
 
       // Sort by average score (descending)
       leaderboard.sort((a, b) => b.avgScore - a.avgScore);
@@ -273,11 +299,22 @@ const Leaderboard = () => {
                               <span className="font-mono">{teamData.team_code}</span>
                               <span>•</span>
                               <span>{teamData.memberCount} members</span>
-                              {teamData.scoresCount < teamData.memberCount && (
-                                <>
-                                  <span>•</span>
-                                  <span className="text-yellow-400">{teamData.scoresCount}/{teamData.memberCount} scored</span>
-                                </>
+                              {selectedRound.round_number === 2 ? (
+                                // Technical Round - show team score status
+                                teamData.scoresCount === 0 && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-yellow-400">No score yet</span>
+                                  </>
+                                )
+                              ) : (
+                                // Other rounds - show individual scoring status
+                                teamData.scoresCount < teamData.memberCount && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-yellow-400">{teamData.scoresCount}/{teamData.memberCount} scored</span>
+                                  </>
+                                )
                               )}
                             </div>
                           </div>
